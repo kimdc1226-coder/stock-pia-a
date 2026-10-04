@@ -1,0 +1,11 @@
+{
+  "name": "stock-pia-prototype",
+  "private": true,
+  "version": "1.0.0",
+  "description": "STOCK PIA asset management static website prototype",
+  "scripts": {
+    "dev": "node scripts/server.mjs",
+    "check": "node --check app.js && node --check data/site-content.js && node scripts/verify-content.mjs && node scripts/verify-no-ppt-citations.mjs"
+  },
+  "engines": { "node": ">=18" }
+}

@@ -1,0 +1,36 @@
+import fs from 'node:fs';
+import vm from 'node:vm';
+import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
+const root = fileURLToPath(new URL('..', import.meta.url));
+const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+const source = JSON.parse(read('data/ppt-extracted.json'));
+const html = read('index.html');
+const context = {window:{}};
+vm.runInNewContext(read('data/site-content.js'), context);
+const content = context.window.SITE_CONTENT;
+assert.equal(source.slideCount, 22);
+assert.equal(source.media.length, 23);
+assert.equal(createHash('sha256').update(fs.readFileSync(path.join(root, source.source))).digest('hex').toUpperCase(), source.sha256, 'Original PPT is unchanged');
+assert.ok(!html.includes('data-source-slides'), 'Source slide metadata must not be rendered');
+const table = source.slides[17].shapes.flatMap(shape=>shape.tables)[0];
+const rawRows = table.rows.slice(2);
+for (let i=0;i<4;i++) {
+  const rawNumbers = rawRows[i].slice(2,5).map(value => Number(value.replaceAll(',','').trim()));
+  assert.deepEqual([...content.portfolio[i].aum],rawNumbers,`Portfolio row ${i+1} must match original`);
+  assert.equal(content.portfolio[i].irr.replace(/\s/g,''),rawRows[i][5].replace(/\s/g,''));
+}
+const sums = [0,1,2].map(i=>content.portfolio.reduce((sum,row)=>sum+row.aum[i],0));
+assert.deepEqual(sums,[6000,10000,16000]);
+const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
+assert.equal(new Set(ids).size,ids.length,'Unique IDs');
+for (const match of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.includes(match[1]),`Anchor exists: ${match[1]}`);
+for (const file of ['styles.css','app.js','data/site-content.js','assets/images/hero.jpg','assets/images/esg.jpg','assets/favicon.svg']) assert.ok(fs.existsSync(path.join(root,file)),file);
+for (const media of source.media) assert.ok(fs.existsSync(path.join(root,media.path)),media.path);
+assert.equal(content.strategies.length,4);
+assert.ok(!html.includes('10,500') && !html.includes('500억 원 차이'), 'No incorrect discrepancy warning');
+const paragraphs = source.slides.flatMap(slide=>slide.shapes.filter(shape=>!shape.tables.length).flatMap(shape=>shape.paragraphs.filter(text=>text.trim())));
+const cells = source.slides.flatMap(slide=>slide.shapes.flatMap(shape=>shape.tables.flatMap(table=>table.rows.flat())));
+console.log(JSON.stringify({result:'PASS',slides:source.slideCount,sourceParagraphs:paragraphs.length,tableCells:cells.length,images:source.media.length,sourceHash:source.sha256,portfolioSums:sums,anchorLinks:'valid',originalPpt:'unchanged'},null,2));
