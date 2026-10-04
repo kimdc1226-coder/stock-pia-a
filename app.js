@@ -128,12 +128,12 @@
     consumer: ['금융소비자보호', '금융소비자보호 기준, 민원 접수 채널과 담당자 정보는 확인 후 게시할 예정입니다. 금융투자업 등록 형태와 판매 구조에 맞는 최종 안내가 필요합니다.'],
     stewardship: ['스튜어드십코드', '스튜어드십코드 참여 여부와 수탁자 책임정책은 자료 수급 후 확정합니다. 현재 참여 또는 이행 실적을 표시하지 않습니다.'],
     contact: ['투자·제휴 문의 안내', 'LP 출자, 프로젝트 펀드, 공동 투자 및 매각 자문을 위한 IR 연락처를 준비하고 있습니다. ir@stockpia.co.kr은 사용 여부 확인 전이며 대표전화와 IR 전화는 임시값입니다. 연락처 확정 후 이메일·전화 연결을 제공합니다. 현재 문의 정보가 전송되거나 저장되지는 않습니다.'],
-    credits: ['이미지 출처', '메인 건축 이미지와 ESG 인프라 이미지는 Unsplash 사진을 사용한 디자인 시안입니다. 실제 회사 사옥 또는 투자자산 사진이 아닙니다. 대표이사와 운용진 사진은 고객사 수급 대기 상태입니다.']
+    credits: ['이미지 출처', '히어로·비전·철학·Contact 배경 영상과 일부 건축 이미지는 Pexels(K, ArtHouse Studio) 무료 영상·사진이며, 그 외 건축·ESG 인프라 이미지는 Unsplash 사진을 사용한 디자인 시안입니다. 실제 회사 사옥 또는 투자자산 사진이 아닙니다. 대표이사와 운용진 사진은 고객사 수급 대기 상태입니다.']
   };
   $$('[data-info]').forEach(button => button.addEventListener('click', () => {
     const [title, description] = info[button.dataset.info];
     let extra = '';
-    if (button.dataset.info === 'credits') extra = '<ul><li><a href="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab" target="_blank" rel="noopener noreferrer">건축 사진 / Unsplash 원본</a></li><li><a href="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e" target="_blank" rel="noopener noreferrer">에너지 인프라 사진 / Unsplash 원본</a></li><li><a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash License</a></li></ul>';
+    if (button.dataset.info === 'credits') extra = '<ul><li><a href="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab" target="_blank" rel="noopener noreferrer">건축 사진 / Unsplash 원본</a></li><li><a href="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e" target="_blank" rel="noopener noreferrer">에너지 인프라 사진 / Unsplash 원본</a></li><li><a href="https://www.pexels.com/video/building-with-exterior-glass-panels-2406631/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2406631</a></li><li><a href="https://www.pexels.com/video/aerial-view-of-buildings-2254324/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2254324</a></li><li><a href="https://www.pexels.com/video/drone-footage-of-buildings-4514373/" target="_blank" rel="noopener noreferrer">Pexels 영상 / ArtHouse Studio · 4514373</a></li><li><a href="https://www.pexels.com/video/high-rise-building-with-glass-panels-2256178/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2256178</a></li><li><a href="https://www.pexels.com/license/" target="_blank" rel="noopener noreferrer">Pexels License</a></li><li><a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash License</a></li></ul>';
     openDialog('STOCK PIA / INFORMATION', title, `<p>${escape(description)}</p>${extra}`, button);
   }));
 
