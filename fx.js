@@ -56,7 +56,7 @@
   });
 
   /* ---------- Scroll reveal + stagger ---------- */
-  const groups = ['.hero-copy', '.hl-row', '.about-points', '.values-grid', '.timeline', '.roadmap', '.phil-cards', '.rail', '.aum-objectives', '.step-stack', '.accordion', '.value-up-grid', '.people-grid', '.org-grid', '.compliance-grid', '.contact-details', '.actual-data', '.esg-grid', '.hero-grid', '.footer-top', '.film-copy', '.hero-chips'];
+  const groups = ['.hero-copy', '.hl-row', '.ac-plot', '.about-points', '.values-grid', '.timeline', '.roadmap', '.phil-cards', '.rail', '.aum-objectives', '.step-stack', '.accordion', '.value-up-grid', '.people-grid', '.org-grid', '.compliance-grid', '.contact-details', '.actual-data', '.esg-grid', '.hero-grid', '.footer-top', '.film-copy', '.hero-chips'];
   const singles = ['.section-top', '.hl-head', '.section-heading', '.about-heading', '.about-copy>.lead', '.about-copy>p', '.vision-band', '.sticky-col', '.risk-panel>div', '.subsection>.eyebrow', '.subsection>.h3-large', '.table-toolbar', '#portfolio-filters', '.table-scroll', '.data-caution', '.quote-mark', '.phil-sticky h2', '.quote-credit', '.philosophy-aside', '.organization>h3', '.disclosure-controls', '.compliance-grid', '.esg-content>*', '.contact h2', '.contact-grid>div>p', '.contact .button', '.investment-notice'];
   if (!reduced && 'IntersectionObserver' in window) {
     const mark = (el, i) => { if (el.classList.contains('r')) return; el.classList.add('r'); el.style.setProperty('--d', (i * 0.12).toFixed(2) + 's'); io.observe(el); };
