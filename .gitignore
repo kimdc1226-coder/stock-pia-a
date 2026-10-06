@@ -1,0 +1,7 @@
+# 고객사 원본·내부 작업 자료 (로컬에만 보관, 저장소에 올리지 않음)
+/*.pptx
+/data/
+/assets/ppt/
+/docs/
+/update.txt
+/MAIN_Image.png
