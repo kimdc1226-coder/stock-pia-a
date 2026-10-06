@@ -2,6 +2,13 @@
 
 제공 PPT 22장과 TIMEFOLIO·DS ASSET 직접 리서치를 반영한 한국어 반응형 웹 초안입니다. 딥네이비·브라스 브랜드 인트로, 투자 철학, 4대 투자전략, 목표 포트폴리오, 운용/리스크/ESG, 경영진, 공시 및 파트너십을 포함합니다.
 
+## 배포 구조 (보안)
+
+- Netlify는 `netlify.toml`의 `publish = "public"` 설정에 따라 **`public/` 폴더만** 배포합니다. 루트의 PPT, `docs/`, `scripts/`, `data/ppt-extracted.*` 등은 공개되지 않습니다.
+- 사이트 파일(`index.html`, `styles.css`, `app.js`, `fx.js`, `assets/`, `data/site-content.js`)은 모두 `public/` 안에서 수정합니다.
+- 보안 헤더(CSP 등)는 `netlify.toml`에서 관리합니다.
+- 정식 런칭 시 `public/index.html`의 `noindex` 메타 태그를 반드시 삭제하세요.
+
 ## 프로젝트 및 공개 현황
 
 - **소스 저장소:** [GitHub - kimdc1226-coder/stock-pia](https://github.com/kimdc1226-coder/stock-pia)
@@ -34,7 +41,7 @@
 **로컬 서버:** Node.js 18 이상에서 다음 명령을 실행합니다. 패키지 설치는 필요 없습니다.
 
 ```powershell
-Set-Location -LiteralPath 'C:\codex\STOCK PIA'
+Set-Location -LiteralPath 'C:\codex\STOCK-PIA-B'
 npm.cmd run dev
 ```
 
@@ -172,7 +179,7 @@ Netlify를 수동 업로드 방식으로 운영 중이라면 GitHub 변경만으
 ## 재추출 및 내용 검증
 
 ```powershell
-Set-Location -LiteralPath 'C:\codex\STOCK PIA'
+Set-Location -LiteralPath 'C:\codex\STOCK-PIA-B'
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\scripts\extract-ppt.ps1
 npm.cmd run check
 ```

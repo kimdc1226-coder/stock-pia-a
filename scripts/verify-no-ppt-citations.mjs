@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = fileURLToPath(new URL('..', import.meta.url));
-const publicSources = ['index.html', 'app.js', 'styles.css', 'data/site-content.js'];
+const publicSources = ['public/index.html', 'public/app.js', 'public/styles.css', 'public/data/site-content.js'];
 const forbidden = [
   /PPT/i,
   /소개자료/,
