@@ -32,7 +32,7 @@ main,.footer{position:relative;z-index:1}
 .about-points .glass:hover,.values-grid .glass:hover,.phil-cards .glass:hover,.roadmap .glass:hover,.value-up-grid .glass:hover,.org-grid .glass:hover,.compliance-grid .glass:hover,.aum-objectives .glass:hover,.person:hover,.contact-details .glass:hover,.bento .glass:hover{transform:translateY(-8px)}
 .tint-ice{background:linear-gradient(145deg,#d4e8ffcc,#ffffff66)}.tint-mint{background:linear-gradient(145deg,#cdf5e4cc,#ffffff66)}.tint-peach{background:linear-gradient(145deg,#ffddc9cc,#ffffff66)}.tint-lilac{background:linear-gradient(145deg,#e5dcffcc,#ffffff66)}
 .section{padding-block:150px}.alt{background:#f5f5f7b3}
-.section-top{display:flex;justify-content:space-between;align-items:center;gap:20px;margin-bottom:56px}
+.section-top{display:flex;justify-content:flex-end;align-items:center;gap:20px;margin-bottom:56px}
 .eyebrow{font:700 11px/1.5 var(--mono);letter-spacing:.14em;color:var(--blue);text-transform:uppercase;display:inline-flex;align-items:center;gap:10px}.eyebrow i{width:8px;height:8px;border-radius:50%;background:currentColor;display:block}
 .section-code{font:500 10px var(--mono);letter-spacing:.14em;color:var(--faint)}
 .section-heading{display:flex;justify-content:space-between;align-items:flex-end;gap:40px;margin-bottom:56px}.section-heading>p{max-width:420px}.section-heading .eyebrow{margin-bottom:18px}
