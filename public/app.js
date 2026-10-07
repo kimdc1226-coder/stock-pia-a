@@ -66,7 +66,7 @@
     const box = dialog.getBoundingClientRect();
     if (event.target === dialog && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) dialog.close();
   });
-  dialog.addEventListener('close', () => { document.body.classList.remove('modal-open'); dialogOpener?.focus(); });
+  dialog.addEventListener('close', () => { dialog.classList.remove('pef-dialog'); document.body.classList.remove('modal-open'); dialogOpener?.focus(); });
   $$('[data-strategy]').forEach(button => button.addEventListener('click', () => {
     const strategy = content.strategies.find(item => item.id === button.dataset.strategy);
     const html = `<p>${escape(strategy.description)}</p><dl>${strategy.details.map(([title, description]) => `<dt>${escape(title)}</dt><dd>${escape(description)}</dd>`).join('')}</dl><p class="dialog-note">${escape(strategy.note)}</p>`;
@@ -94,23 +94,12 @@
   }));
   renderPortfolio();
 
-  let pefFilter = 'all';
-  const pefSpans = [[12], [6, 6], [4, 4, 4]];
-  function renderPef() {
-    const rows = content.pefProjects.filter(item => pefFilter === 'all' || item.category === pefFilter);
-    const spans = rows.length === content.pefProjects.length ? [6, 3, 3, 4, 4, 4, 6, 6] : rows.length <= 3 ? pefSpans[rows.length - 1] : rows.map(() => 4);
-    $('#pef-grid').innerHTML = rows.map((item, i) => {
-      const cat = content.pefCategories.find(c => c.id === item.category);
-      return `<article class="pef-card glass" data-cat="${escape(item.category)}" style="--span:${spans[i] || 4};--i:${i}"><span class="pef-cat"><i></i>${escape(cat.title)}</span><h3>${escape(item.name)}</h3><p>${escape(item.description)}</p><ul class="pef-stack" aria-label="투자 구조">${item.structure.map(tag => `<li>${escape(tag)}</li>`).join('')}</ul></article>`;
-    }).join('');
-    $('#pef-status').textContent = `${rows.length}개 프로젝트 · 투자 구조는 검토 단계의 구성안입니다.`;
-  }
-  $$('#pef-filters button').forEach(button => button.addEventListener('click', () => {
-    pefFilter = button.dataset.filter;
-    activateFilter($('#pef-filters'), button);
-    renderPef();
+  $$('[data-pef]').forEach(button => button.addEventListener('click', () => {
+    const theme = content.pefThemes.find(item => item.id === button.dataset.pef);
+    const funds = theme.funds.map((fund, i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h3>${escape(fund.name)}</h3><p>${escape(fund.business)}</p><ul class="pef-types" aria-label="펀드 형태">${fund.types.map(type => `<li>${escape(type)}</li>`).join('')}</ul></article>`).join('');
+    dialog.classList.add('pef-dialog');
+    openDialog(theme.eyebrow, theme.title, `<p>${escape(theme.summary)}</p><div class="pef-funds">${funds}</div><p class="dialog-note">조성 계획 단계의 펀드 구성안이며, 실제 펀드명·투자 구조·규모는 확정되지 않았습니다.</p>`, button);
   }));
-  renderPef();
 
   let disclosureFilter = 'all';
   const normalize = text => text.toLocaleLowerCase('ko-KR').replace(/\s+/g, '');

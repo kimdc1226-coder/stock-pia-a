@@ -35,21 +35,27 @@ window.SITE_CONTENT = {
     { category: 'credit', name: '사모채권 & 메자닌 펀드', detail: '투자대상 기업의 회사채, 메자닌 투자', aum: [1500,2500,3500], irr: '9% ~ 12%' },
     { category: 'special', name: '스페셜 시츄에이션 혼합형 펀드', detail: '신재생에너지 Project 및 기업 Mixing 투자', aum: [3500,4000,7000], irr: '16% +' }
   ],
-  pefCategories: [
-    { id: 'ai', label: 'AI 인프라', title: 'AI & Power Infrastructure', ko: 'AI 파워 인프라' },
-    { id: 'renewable', label: '신재생에너지', title: 'Renewable Energy', ko: '신재생에너지 솔루션' },
-    { id: 'green', label: '친환경·ESG', title: 'Green & Circular', ko: '친환경 솔루션 & ESG' },
-    { id: 'tech', label: '차세대 테크', title: 'AI & Advanced Tech', ko: '차세대 AI 테크' }
-  ],
-  pefProjects: [
-    { category: 'ai', name: '하이퍼스케일 IDC 센터', description: '차세대 AI 데이터센터 설립 및 운영 프로젝트 투자', structure: ['Equity', 'Mezzanine', 'PF'] },
-    { category: 'ai', name: '스마트 AI 물류센터', description: '자동화 설비, WMS, 물류 지능화 장비·솔루션 기업 및 프로젝트 투자', structure: ['Equity', 'Mezzanine', 'PF'] },
-    { category: 'renewable', name: '태양광 발전 프로젝트', description: '대규모 태양광 인프라 개발 및 자산 인수 프로젝트', structure: ['Equity', 'Mezzanine', 'PF'] },
-    { category: 'renewable', name: '해상·육상 풍력 발전', description: '신규 발전 단지 구축 및 지분 투자 프로젝트', structure: ['Equity', 'Mezzanine', 'PF'] },
-    { category: 'renewable', name: '수소연료전지 발전', description: '전력 생산과 DC 냉각 시스템 연계 에코 프로젝트', structure: ['Equity', 'Mezzanine', '회사채/PF'] },
-    { category: 'green', name: '글로벌 메탈 리사이클링', description: '고순도 금속 스크랩 수입·가공·재수출 특화 밸류체인 구축', structure: ['Equity', 'PF'] },
-    { category: 'green', name: '그린 스마트 애그리컬처', description: '스마트팜 설비 시공·운영, AI 생육진단 및 수확 로봇 시스템 개발 기업 투자', structure: ['RCPS', 'Equity'] },
-    { category: 'tech', name: '첨단 반도체 소부장', description: '메모리·비메모리 전·후공정 장비 소모성 핵심 부품 기업 발굴 및 투자', structure: ['Equity', 'Mezzanine', 'PF'] }
+  pefThemes: [
+    { id: 'ai', number: '01', eyebrow: 'PEF PIPELINE · THEME 01', title: 'AI 파워 인프라', subtitle: 'AI & Power Infrastructure',
+      summary: '차세대 데이터센터(IDC), 반도체 소부장, 스마트 AI 물류 인프라 조성',
+      funds: [
+        { name: 'OO IDC센터 펀드', business: '하이퍼스케일 IDC 설립 및 운영 프로젝트 투자', types: ['Equity', 'Mezzanine', '회사채/PF'] },
+        { name: 'AI 테크 펀드', business: '메모리·비메모리 반도체 전·후공정 장비 소모성 핵심 부품 기업 투자', types: ['RCPS', 'Equity'] },
+        { name: 'AI 디지털 솔루션 펀드', business: 'AI 물류센터 자동화 설비, WMS, 물류 지능화 장비 관련 기업 및 프로젝트 투자', types: ['Equity', 'Mezzanine', '회사채/PF'] }
+      ] },
+    { id: 'energy', number: '02', eyebrow: 'PEF PIPELINE · THEME 02', title: '신재생에너지 솔루션', subtitle: 'Renewable Energy Solutions',
+      summary: '태양광, 풍력, 수소연료전지 발전 및 친환경 전력망 프로젝트',
+      funds: [
+        { name: '태양광 발전 펀드', business: '대규모 태양광 발전 사업 프로젝트 투자 및 자산 인수', types: ['Equity', 'Mezzanine', 'PF'] },
+        { name: '풍력 발전 펀드', business: '해상·육상 풍력 발전 사업 단지 구축 및 프로젝트 지분 투자', types: ['Equity', 'Mezzanine', 'PF'] },
+        { name: '수소연료전지 발전 펀드', business: '수소연료 발전 사업 프로젝트 (전력 생산 및 데이터센터 냉각 연계 시스템)', types: ['Equity', 'Mezzanine', 'PF'] }
+      ] },
+    { id: 'green', number: '03', eyebrow: 'PEF PIPELINE · THEME 03', title: '친환경 솔루션', subtitle: 'Eco & Circular Solutions',
+      summary: '첨단 스마트팜 애그리컬처 및 글로벌 메탈 자원 순환 밸류체인',
+      funds: [
+        { name: '그린 스마트 애그리컬처 펀드', business: '스마트팜 설비 시공·운영 프로젝트, AI 생육 진단 및 수확 로봇 시스템 개발 기업 투자', types: ['Equity', 'PF'] },
+        { name: '글로벌 메탈 리사이클링 펀드', business: '고순도 스크랩 수입 및 분리·가공 후 재수출하는 금속 재활용 특화 투자', types: ['Equity', 'PF'] }
+      ] }
   ],
   disclosures: [
     { category: 'management', label: '경영공시', title: '영업보고서 및 결산 공고', description: '결산기, 공시 기준일 및 승인된 영업보고서·재무제표 원본을 수급한 뒤 등록합니다.' },

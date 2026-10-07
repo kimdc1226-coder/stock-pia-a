@@ -146,13 +146,15 @@
       </div>
     </section>
 
-    <!-- PEF PIPELINE — fund project cards with category filter -->
+    <!-- PEF PIPELINE — 3 theme cards, click opens fund details dialog -->
     <section class="section pef" id="pef" aria-labelledby="pef-title"><div class="wrap">
       <div class="section-top"><span class="section-code">PEF PIPELINE &amp; ARCHITECTURE</span></div>
-      <div class="section-heading"><div><h2 id="pef-title">PEF 조성 계획<br>및 파이프라인</h2></div><p>AI 인프라에서 신재생에너지, 친환경·ESG, 차세대 테크까지.<br>산업별 프로젝트와 투자 구조를 한눈에 확인하세요.<br><span class="small">조성 계획 단계의 검토 대상이며 확정된 투자를 의미하지 않습니다.</span></p></div>
-      <div class="filter-group pef-filters" id="pef-filters" role="group" aria-label="PEF 카테고리"><button class="active" aria-pressed="true" data-filter="all">전체</button><button aria-pressed="false" data-filter="ai">AI 인프라</button><button aria-pressed="false" data-filter="renewable">신재생에너지</button><button aria-pressed="false" data-filter="green">친환경·ESG</button><button aria-pressed="false" data-filter="tech">차세대 테크</button></div>
-      <div class="pef-grid" id="pef-grid" aria-live="polite"></div>
-      <p class="small pef-status" id="pef-status" role="status"></p>
+      <div class="section-heading"><div><h2 id="pef-title">PEF 파이프라인<br>조성 계획 펀드</h2></div><p>AI 인프라, 신재생에너지, 친환경 솔루션.<br>세 가지 테마로 조성을 준비 중인 펀드를 소개합니다.<br><span class="small">조성 계획 단계의 검토 대상이며 확정된 투자를 의미하지 않습니다.</span></p></div>
+      <div class="pef-themes">
+        <button class="strategy-card glass pef-card" type="button" data-pef="ai" aria-haspopup="dialog"><img class="sc-media" src="assets/images/pef-ai.jpg" alt="" loading="lazy"><i class="sc-shade" aria-hidden="true"></i><span class="strategy-number">01</span><span class="line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="1.5"/><rect x="3" y="14" width="18" height="6" rx="1.5"/><path d="M7 7h.01M7 17h.01M11 7h6M11 17h6"/></svg></span><span class="eyebrow"><i></i> PEF PIPELINE · THEME 01</span><h3>AI 파워 인프라</h3><p>차세대 데이터센터(IDC), 반도체 소부장,<br>스마트 AI 물류 인프라 조성</p><span class="card-bottom">파이프라인 세부보기 <span aria-hidden="true">↗</span></span></button>
+        <button class="strategy-card glass pef-card" type="button" data-pef="energy" aria-haspopup="dialog"><img class="sc-media" src="assets/images/pef-energy.jpg" alt="" loading="lazy"><i class="sc-shade" aria-hidden="true"></i><span class="strategy-number">02</span><span class="line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="9" r="1.6"/><path d="M12 7.4V2.5M10.6 9.8 6.3 12.3M13.4 9.8l4.3 2.5M12 10.6V21M8.5 21h7"/></svg></span><span class="eyebrow"><i></i> PEF PIPELINE · THEME 02</span><h3>신재생에너지<br>솔루션</h3><p>태양광, 풍력, 수소연료전지 발전 및<br>친환경 전력망 프로젝트</p><span class="card-bottom">파이프라인 세부보기 <span aria-hidden="true">↗</span></span></button>
+        <button class="strategy-card glass pef-card" type="button" data-pef="green" aria-haspopup="dialog"><img class="sc-media" src="assets/images/pef-green.jpg" alt="" loading="lazy"><i class="sc-shade" aria-hidden="true"></i><span class="strategy-number">03</span><span class="line-icon" aria-hidden="true"><svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19c2.5-4 5-6.5 9-8.5"/></svg></span><span class="eyebrow"><i></i> PEF PIPELINE · THEME 03</span><h3>친환경 솔루션</h3><p>첨단 스마트팜 애그리컬처 및<br>글로벌 메탈 자원 순환 밸류체인</p><span class="card-bottom">파이프라인 세부보기 <span aria-hidden="true">↗</span></span></button>
+      </div>
     </div></section>
 
     <!-- 06 · PORTFOLIO — giant AUM + table -->
