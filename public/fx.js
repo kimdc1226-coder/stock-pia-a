@@ -38,7 +38,7 @@
     [body, foot].forEach(n => n && new MutationObserver(() => { if (tableSeen) animateTable(); }).observe(n, { childList: true }));
   }
 
-  /* ---------- Tabs ---------- */
+  /* ---------- Tabs (ESG) ---------- */
   $$('[data-tabs]').forEach(root => {
     const tabs = $$('[role=tab]', root), panels = tabs.map(t => document.getElementById(t.dataset.tab));
     const select = tab => tabs.forEach((t, i) => {
@@ -56,19 +56,19 @@
   });
 
   /* ---------- Scroll reveal + stagger ---------- */
-  const groups = ['.hero-copy', '.hl-row', '.ac-plot', '.about-points', '.values-grid', '.timeline', '.roadmap', '.phil-cards', '.rail', '.aum-objectives', '.step-stack', '.accordion', '.value-up-grid', '.people-grid', '.org-chart', '.org-branch', '.compliance-grid', '.contact-details', '.actual-data', '.esg-grid', '.hero-grid', '.footer-top', '.film-copy', '.hero-chips'];
-  const singles = ['.section-top', '.hl-head', '.section-heading', '.about-heading', '.about-copy>.lead', '.about-copy>p', '.vision-band', '.sticky-col', '.risk-panel>div', '.subsection>.eyebrow', '.subsection>.h3-large', '.table-toolbar', '#portfolio-filters', '.table-scroll', '.data-caution', '.quote-mark', '.phil-sticky h2', '.quote-credit', '.philosophy-aside', '.organization>h3', '.disclosure-controls', '.compliance-grid', '.esg-content>*', '.contact h2', '.contact-grid>div>p', '.contact .button', '.investment-notice'];
+  const groups = ['.page-hero .wrap', '.hero-copy', '.hl-row', '.ac-plot', '.about-points', '.values-grid', '.timeline', '.roadmap', '.phil-cards', '.rail', '.pef-themes', '.tiles', '.step-stack', '.accordion', '.value-up-grid', '.people-grid', '.org-chart', '.org-branch', '.compliance-grid', '.contact-details', '.actual-data', '.esg-grid', '.footer-top', '.film-copy', '.hero-chips', '.cta-band .wrap', '#disclosure-feed'];
+  const singles = ['.hl-head', '.section-heading', '.tile-group', '.about-heading', '.about-copy>.lead', '.about-copy>p', '.sticky-col', '.table-toolbar', '#portfolio-filters', '.table-scroll', '.data-caution', '.quote-mark', '.phil-sticky h2', '.quote-credit', '.philosophy-aside', '.disclosure-controls', '.esg-content>*', '.contact h2', '.contact-grid>div>p', '.contact .button', '.investment-notice', '.feed-more', '.h3-large'];
   if (!reduced && 'IntersectionObserver' in window) {
-    const mark = (el, i) => { if (el.classList.contains('r')) return; el.classList.add('r'); el.style.setProperty('--d', (i * 0.12).toFixed(2) + 's'); io.observe(el); };
     const io = new IntersectionObserver(es => es.forEach(e => {
       if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); }
     }), { threshold: .12, rootMargin: '0px 0px -6% 0px' });
-    singles.forEach(s => $$(s).forEach((el, i) => mark(el, s.includes('>') && !s.endsWith('>*') ? 0 : (s.endsWith('>*') ? i : 0))));
-    groups.forEach(g => $$(g).forEach(parent => [...parent.children].forEach((el, i) => { if (!el.matches('.hero-visual')) mark(el, Math.min(i, 8)); })));
-    $$('.hero-visual').forEach(el => mark(el, 3));
+    const mark = (el, i) => { if (el.classList.contains('r')) return; el.classList.add('r'); el.style.setProperty('--d', (i * 0.1).toFixed(2) + 's'); io.observe(el); };
+    singles.forEach(s => $$(s).forEach((el, i) => mark(el, s.endsWith('>*') ? Math.min(i, 6) : 0)));
+    groups.forEach(g => $$(g).forEach(parent => [...parent.children].forEach((el, i) => mark(el, Math.min(i, 8)))));
+    // cards rendered by app.js after the first paint of the page are covered because app.js runs before this file
   }
 
-  /* ---------- Parallax ---------- */
+  /* ---------- Parallax + hero fade ---------- */
   const px = !reduced ? $$('[data-parallax]') : [];
   let ticking = false;
   const heroCopy = $('.hero-copy'), heroChips = $('.hero-chips');
@@ -77,8 +77,8 @@
     const vh = innerHeight, y = scrollY;
     if (heroCopy) {
       const k = Math.max(0, 1 - y / (vh * .62));
-      heroCopy.style.opacity = k; heroChips.style.opacity = k;
-      if (!reduced) { heroCopy.style.translate = '0 ' + (-y * .14).toFixed(1) + 'px'; heroChips.style.translate = '0 ' + (-y * .24).toFixed(1) + 'px'; }
+      heroCopy.style.opacity = k; if (heroChips) heroChips.style.opacity = k;
+      if (!reduced) { heroCopy.style.translate = '0 ' + (-y * .14).toFixed(1) + 'px'; if (heroChips) heroChips.style.translate = '0 ' + (-y * .24).toFixed(1) + 'px'; }
     }
     px.forEach(el => {
       const r = el.parentElement.getBoundingClientRect();
@@ -87,33 +87,18 @@
       el.style.setProperty('--p', off.toFixed(1) + 'px');
     });
   };
-
-  /* ---------- Scroll: progress, parallax, dynamic GNB ---------- */
   const bar = $('#progress-bar');
-  let lastY = scrollY, hidden = false;
-  const setHidden = v => { if (v !== hidden) { hidden = v; header.classList.toggle('nav-hide', v); } };
   const onScroll = () => {
-    const h = document.documentElement, y = h.scrollTop;
-    bar.style.transform = 'scaleX(' + y / (h.scrollHeight - h.clientHeight || 1) + ')';
-    const dy = y - lastY;
-    if (!header.classList.contains('menu-open')) {
-      if (y < 120 || dy < -6) setHidden(false);
-      else if (dy > 6) setHidden(true);
-    }
-    if (Math.abs(dy) > 6) lastY = y; else if (y < 120) lastY = y;
+    const h = document.documentElement;
+    if (bar) bar.style.transform = 'scaleX(' + h.scrollTop / (h.scrollHeight - h.clientHeight || 1) + ')';
     if (!ticking) { ticking = true; requestAnimationFrame(parallax); }
   };
   addEventListener('scroll', onScroll, { passive: true });
   addEventListener('resize', parallax);
   parallax(); onScroll();
-  header.addEventListener('focusin', () => setHidden(false));
-  addEventListener('pointermove', e => {
-    if (innerWidth > 960 && e.clientY > innerHeight - 110) setHidden(false);
-    else if (innerWidth <= 960 && e.clientY < 90) setHidden(false);
-  }, { passive: true });
 
   /* ---------- Video playback: play only in view, respect motion toggle ---------- */
-  const vids = $('video');
+  const vids = $$('video');
   const stopped = () => reduced || document.body.classList.contains('motion-paused');
   if (vids.length && 'IntersectionObserver' in window) {
     const vio = new IntersectionObserver(es => es.forEach(e => {
@@ -122,19 +107,6 @@
     }), { threshold: .05 });
     vids.forEach(v => vio.observe(v));
     new MutationObserver(() => vids.forEach(v => { if (stopped()) v.pause(); else if (v.dataset.vis) v.play().catch(() => {}); })).observe(document.body, { attributes: true, attributeFilter: ['class'] });
-  }
-
-  /* ---------- Strategy rail ---------- */
-  const rail = $('#strategy-rail');
-  if (rail) {
-    const step = () => (rail.querySelector('.strategy-card')?.offsetWidth || 360) + 20;
-    $('#rail-prev').addEventListener('click', () => rail.scrollBy({ left: -step(), behavior: 'smooth' }));
-    $('#rail-next').addEventListener('click', () => rail.scrollBy({ left: step(), behavior: 'smooth' }));
-    let down = false, sx = 0, sl = 0, moved = false;
-    rail.addEventListener('pointerdown', e => { if (e.pointerType !== 'mouse') return; down = true; moved = false; sx = e.clientX; sl = rail.scrollLeft; });
-    addEventListener('pointermove', e => { if (!down) return; const dx = e.clientX - sx; if (Math.abs(dx) > 5) moved = true; rail.scrollLeft = sl - dx; });
-    addEventListener('pointerup', () => { down = false; });
-    rail.addEventListener('click', e => { if (moved) { e.stopPropagation(); e.preventDefault(); moved = false; } }, true);
   }
 
   /* ---------- Card sheen follows cursor ---------- */

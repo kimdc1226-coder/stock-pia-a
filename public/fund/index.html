@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f5f5f7">
+  <!-- TODO: 정식 런칭 시 이 noindex 태그 반드시 삭제할 것 (삭제하지 않으면 검색엔진에 노출되지 않음) -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="description" content="STOCK PIA 자산운용의 PEF 파이프라인 조성 계획 펀드와 목표 포트폴리오를 소개합니다.">
+  <title>PEF·펀드 | STOCK PIA 자산운용</title>
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="STOCK PIA">
+  <meta property="og:locale" content="ko_KR">
+  <meta property="og:url" content="https://stock-pia.com/fund/">
+  <meta property="og:title" content="PEF·펀드 | STOCK PIA 자산운용">
+  <meta property="og:description" content="STOCK PIA 자산운용의 PEF 파이프라인 조성 계획 펀드와 목표 포트폴리오를 소개합니다.">
+  <meta property="og:image" content="https://stock-pia.com/assets/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="STOCK PIA ASSET MANAGEMENT 로고">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PEF·펀드 | STOCK PIA 자산운용">
+  <meta name="twitter:description" content="STOCK PIA 자산운용의 PEF 파이프라인 조성 계획 펀드와 목표 포트폴리오를 소개합니다.">
+  <meta name="twitter:image" content="https://stock-pia.com/assets/og-image.png">
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/styles.css">
+  <script src="/data/site-content.js" defer></script>
+  <script src="/app.js" defer></script>
+  <script src="/fx.js" defer></script>
+</head>
+<body data-page="fund">
+  <a class="skip-link" href="#main">본문 바로가기</a>
+  <div class="progress" aria-hidden="true"><i id="progress-bar"></i></div>
+  <div id="site-header"></div>
+  <main id="main">
+    <section class="page-hero" aria-labelledby="page-title"><div class="wrap">
+      <nav class="crumbs" aria-label="현재 위치"><ol><li><a href="/">홈</a></li><li><span aria-current="page">PEF·펀드</span></li></ol></nav>
+      <h1 id="page-title">PEF·펀드</h1><p>AI 인프라, 신재생에너지, 친환경 솔루션. 세 가지 테마로 조성을 준비 중인 펀드를 소개합니다.</p>
+    </div></section>
+    <nav class="subnav" data-subnav aria-label="페이지 내 메뉴"></nav>
+    <section class="section pef" id="pef" aria-labelledby="pef-title"><div class="wrap">
+      <div class="section-heading"><div><h2 id="pef-title">PEF 파이프라인<br>조성 계획 펀드</h2></div><p>AI 인프라, 신재생에너지, 친환경 솔루션.<br>세 가지 테마로 조성을 준비 중인 펀드를 소개합니다.<br><span class="small">조성 계획 단계의 검토 대상이며 확정된 투자를 의미하지 않습니다.</span></p></div>
+      <div class="pef-themes" id="pef-cards"></div>
+    </div></section>
+
+    <section class="section alt" id="portfolio" aria-labelledby="portfolio-title"><div class="wrap">
+      <div class="section-heading"><div><h2 id="portfolio-title">숫자로 보는<br>미래의 포트폴리오</h2></div><span class="status-badge">사업계획 · 목표 수치</span></div>
+      <div class="aum-chart" role="group" aria-label="연도별 AUM 목표: 2027년 0.6조 원, 2028년 1.0조 원, 2029년 1.6조 원">
+        <div class="ac-plot">
+          <div class="ac-col ac-base" style="--h:9%"><div class="ac-info"><strong class="ac-text">신경영진 구축</strong><small>성장의 기반</small></div><div class="ac-bar"></div><span class="ac-year">2026</span></div>
+          <div class="ac-col" style="--h:37.5%"><div class="ac-info"><strong><i data-count="0.6" data-dec="1">0.6</i><small>조 원</small></strong></div><div class="ac-bar"></div><span class="ac-year">2027 목표</span></div>
+          <div class="ac-col" style="--h:62.5%"><div class="ac-info"><strong><i data-count="1.0" data-dec="1">1.0</i><small>조 원</small></strong></div><div class="ac-bar"></div><span class="ac-year">2028 목표</span></div>
+          <div class="ac-col" style="--h:100%"><div class="ac-info"><strong><i data-count="1.6" data-dec="1">1.6</i><small>조 원</small></strong></div><div class="ac-bar"></div><span class="ac-year">2029 목표</span></div>
+        </div>
+      </div>
+      <div class="table-toolbar"><h3>자산군별 예상 포트폴리오</h3><span>단위: 억 원</span></div>
+      <div class="filter-group" id="portfolio-filters" role="group" aria-label="포트폴리오 자산군 필터"><button class="active" aria-pressed="true" data-filter="all">전체</button><button aria-pressed="false" data-filter="equity">주식</button><button aria-pressed="false" data-filter="realestate">부동산·NPL</button><button aria-pressed="false" data-filter="credit">크레딧</button><button aria-pressed="false" data-filter="special">스페셜</button></div>
+      <p class="table-hint">표를 좌우로 밀어 연도별 목표와 IRR를 확인하세요. ↔</p>
+      <div class="table-scroll glass" tabindex="0" role="region" aria-label="자산군별 AUM 목표 표, 작은 화면에서는 가로 스크롤"><table class="data-table"><caption class="sr-only">미래 계획 AUM 및 목표 IRR. 실제 운용실적이 아닙니다.</caption><thead><tr><th scope="col">자산 유형 / 투자 내용</th><th scope="col" class="number">2027 목표</th><th scope="col" class="number">2028 목표</th><th scope="col" class="number">2029 목표</th><th scope="col" class="number">목표 IRR</th></tr></thead><tbody id="portfolio-body"></tbody><tfoot id="portfolio-total"></tfoot></table></div>
+      <p id="portfolio-status" class="sr-only" aria-live="polite"></p>
+      <p class="data-caution"><span aria-hidden="true">ⓘ</span> 미래 계획입니다. 자산군별 합계는 2027년 6,000억 원, 2028년 10,000억 원, 2029년 16,000억 원으로 연도별 AUM 목표와 일치합니다.</p>
+      <p class="small">모든 AUM·IRR는 목표 또는 예상치입니다. 실제 운용규모·성과가 아니며 달성 또는 수익을 보장하지 않습니다. ‘16~20% +’ 등 IRR 표기를 유지합니다.</p>
+      <div class="actual-data"><div><span>실제 누적 AUM</span><strong>자료 준비 중</strong></div><div><span>기준가 / 실제 수익률</span><strong>자료 준비 중</strong></div><div><span>검증된 트랙레코드</span><strong>자료 준비 중</strong></div><p>기준일과 검증 자료가 확정된 후 공개합니다.<br>현재 확정된 판매 펀드 라인업은 제공되지 않았습니다.</p></div>
+    </div></section>
+  </main>
+  <div id="site-footer"></div>
+  <noscript><div class="noscript">메뉴, 전략 상세와 표 필터 기능은 JavaScript가 필요합니다.</div></noscript>
+</body>
+</html>

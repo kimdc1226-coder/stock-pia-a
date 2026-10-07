@@ -12,10 +12,12 @@ const server = http.createServer(async (req, res) => {
     const path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
     const target = resolve(root, '.' + (path === '/' ? '/index.html' : path));
     if (!target.startsWith(root + sep) || path.split('/').some(p => p.startsWith('.'))) { res.writeHead(403); res.end('Forbidden'); return; }
-    const info = await stat(target);
+    let file = target;
+    let info = await stat(file);
+    if (info.isDirectory()) { file = resolve(target, 'index.html'); info = await stat(file); } // /about/ -> /about/index.html (Cloudflare 방식)
     if (!info.isFile()) throw new Error('Not a file');
-    res.writeHead(200, {'Content-Type': mime[extname(target)] || 'application/octet-stream', 'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff'});
-    res.end(req.method === 'HEAD' ? undefined : await readFile(target));
+    res.writeHead(200, {'Content-Type': mime[extname(file)] || 'application/octet-stream', 'Cache-Control':'no-store', 'X-Content-Type-Options':'nosniff'});
+    res.end(req.method === 'HEAD' ? undefined : await readFile(file));
   } catch { res.writeHead(404); res.end('Not found'); }
 });
 server.on('error', error => { console.error(error.message); process.exitCode = 1; });
