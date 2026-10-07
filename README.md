@@ -14,7 +14,7 @@
 - **소스 저장소:** [GitHub - kimdc1226-coder/stock-pia](https://github.com/kimdc1226-coder/stock-pia)
 - **기본 브랜치:** `main`
 - **외부 공개:** Cloudflare Workers 배포 (`main` 브랜치 push 시 자동 배포). Netlify는 크레딧 한도로 Production 배포가 중지된 상태입니다.
-- **공개 URL:** [https://stock-pia-a.kimdc1226.workers.dev/](https://stock-pia-a.kimdc1226.workers.dev/)
+- **공개 URL:** [https://stock-pia.com/](https://stock-pia.com/)
 - **배포 형태:** 별도 빌드가 필요 없는 정적 HTML/CSS/JavaScript 사이트
 
 이 프로젝트는 GitHub에 소스를 보관하고 Netlify에서 외부에 공유할 수 있도록 배포한 상태입니다. 향후 외부 개발자가 수정할 때는 GitHub 저장소를 기준 원본으로 사용하고, 수정 내용을 `main` 브랜치에 반영한 뒤 Netlify의 Production deploy가 성공했는지 확인해야 합니다.
