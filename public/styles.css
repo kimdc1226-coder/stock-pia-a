@@ -552,3 +552,21 @@ dialog[open]{animation:dlg .5s cubic-bezier(.16,.84,.24,1)}dialog[open]::backdro
 .org-branch{grid-column:1;grid-row:2;grid-template-columns:1fr;margin-left:30px;border-left:2px solid #475569}
 .org-cell,.org-cell:first-child{padding:0 0 18px 30px}.org-cell:before{top:50%;left:0;right:auto;width:30px;border-top:2px solid #475569;transform:translateY(-9px)}.org-cell:first-child:before,.org-cell:last-child:before{left:0;right:auto}.org-cell:after{display:none}.org-cell:last-child{padding-bottom:0}
 .org-side:after{content:'';position:absolute;left:30px;top:0;height:30px;border-left:2px dashed #94a3b8}}
+
+/* PEF pipeline */
+.pef{padding-top:40px}.pef .section-heading{margin-bottom:36px}.pef-filters{margin-bottom:28px}
+.pef-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+.pef-card{grid-column:span var(--span,4);min-height:260px;padding:32px;display:flex;flex-direction:column;border-radius:28px;animation:pefIn .5s cubic-bezier(.2,.7,.2,1) both;animation-delay:calc(var(--i,0)*60ms)}
+@keyframes pefIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.pef-cat{display:inline-flex;align-items:center;gap:9px;font:700 10.5px/1.4 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--blue)}
+.pef-cat i{width:8px;height:8px;border-radius:50%;background:#2563eb}
+.pef-card[data-cat=renewable] .pef-cat i{background:#1d4ed8}.pef-card[data-cat=green] .pef-cat i{background:#1e3a8a}.pef-card[data-cat=tech] .pef-cat i{background:#0f172a}
+.pef-card h3{font-size:clamp(22px,2.2vw,30px);font-weight:800;letter-spacing:-.045em;margin:18px 0 12px;color:var(--ink)}
+.pef-card>p{font-size:14px;max-width:46ch}
+.pef-stack{display:flex;flex-wrap:wrap;gap:8px;margin:auto 0 0;padding:26px 0 0;list-style:none}
+.pef-stack li{padding:7px 14px;border-radius:99px;background:#f1f5f9;border:1px solid var(--line);font:600 12px var(--mono);letter-spacing:.02em;color:var(--ink)}
+
+.pef-status{margin-top:18px}
+@media(max-width:1100px){.pef-card{grid-column:span 6}}
+@media(max-width:640px){.pef-card{grid-column:span 12;min-height:0;padding:26px}.pef-filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding-bottom:4px}.pef-filters button{white-space:nowrap;flex:none}}
+@media(prefers-reduced-motion:reduce){.pef-card{animation:none}}

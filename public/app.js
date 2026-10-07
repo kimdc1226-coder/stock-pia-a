@@ -94,6 +94,24 @@
   }));
   renderPortfolio();
 
+  let pefFilter = 'all';
+  const pefSpans = [[12], [6, 6], [4, 4, 4]];
+  function renderPef() {
+    const rows = content.pefProjects.filter(item => pefFilter === 'all' || item.category === pefFilter);
+    const spans = rows.length === content.pefProjects.length ? [6, 3, 3, 4, 4, 4, 6, 6] : rows.length <= 3 ? pefSpans[rows.length - 1] : rows.map(() => 4);
+    $('#pef-grid').innerHTML = rows.map((item, i) => {
+      const cat = content.pefCategories.find(c => c.id === item.category);
+      return `<article class="pef-card glass" data-cat="${escape(item.category)}" style="--span:${spans[i] || 4};--i:${i}"><span class="pef-cat"><i></i>${escape(cat.title)}</span><h3>${escape(item.name)}</h3><p>${escape(item.description)}</p><ul class="pef-stack" aria-label="투자 구조">${item.structure.map(tag => `<li>${escape(tag)}</li>`).join('')}</ul></article>`;
+    }).join('');
+    $('#pef-status').textContent = `${rows.length}개 프로젝트 · 투자 구조는 검토 단계의 구성안입니다.`;
+  }
+  $$('#pef-filters button').forEach(button => button.addEventListener('click', () => {
+    pefFilter = button.dataset.filter;
+    activateFilter($('#pef-filters'), button);
+    renderPef();
+  }));
+  renderPef();
+
   let disclosureFilter = 'all';
   const normalize = text => text.toLocaleLowerCase('ko-KR').replace(/\s+/g, '');
   function renderDisclosures() {
