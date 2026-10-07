@@ -1,0 +1,8 @@
+{
+  // Cloudflare: 정적 자산은 public/ 폴더만 배포합니다. (루트의 README, scripts 등은 공개되지 않음)
+  "name": "stock-pia-a",
+  "compatibility_date": "2026-10-01",
+  "assets": {
+    "directory": "./public"
+  }
+}
