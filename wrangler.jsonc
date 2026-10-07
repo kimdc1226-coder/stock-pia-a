@@ -4,5 +4,7 @@
   "compatibility_date": "2026-10-01",
   "assets": {
     "directory": "./public"
-  }
+  },
+  // wrangler preview(비프로덕션 브랜치 미리보기)에 필요한 빈 블록
+  "previews": {}
 }
