@@ -4,17 +4,17 @@
 
 ## 배포 구조 (보안)
 
-- Netlify는 `netlify.toml`의 `publish = "public"` 설정에 따라 **`public/` 폴더만** 배포합니다. 루트의 PPT, `docs/`, `scripts/`, `data/ppt-extracted.*` 등은 공개되지 않습니다.
+- 현재 배포는 **Cloudflare Workers(정적 자산)** 입니다. `wrangler.jsonc`의 `assets.directory = "./public"` 설정에 따라 **`public/` 폴더만** 공개되며, 루트의 `docs/`, `scripts/`, `data/ppt-extracted.*` 등은 공개되지 않습니다. (`netlify.toml`은 Netlify 배포용으로 남겨 둔 설정입니다.)
 - 사이트 파일(`index.html`, `styles.css`, `app.js`, `fx.js`, `assets/`, `data/site-content.js`)은 모두 `public/` 안에서 수정합니다.
-- 보안 헤더(CSP 등)는 `netlify.toml`에서 관리합니다.
+- 보안 헤더(CSP 등)는 Cloudflare는 `public/_headers`, Netlify는 `netlify.toml`에서 관리합니다. 헤더를 바꿀 때는 두 파일을 함께 수정하세요.
 - 정식 런칭 시 `public/index.html`의 `noindex` 메타 태그를 반드시 삭제하세요.
 
 ## 프로젝트 및 공개 현황
 
 - **소스 저장소:** [GitHub - kimdc1226-coder/stock-pia](https://github.com/kimdc1226-coder/stock-pia)
 - **기본 브랜치:** `main`
-- **외부 공개:** Netlify 배포 완료
-- **Netlify 공개 URL:** [https://stock-pia.netlify.app/](https://stock-pia.netlify.app/)
+- **외부 공개:** Cloudflare Workers 배포 (`main` 브랜치 push 시 자동 배포). Netlify는 크레딧 한도로 Production 배포가 중지된 상태입니다.
+- **공개 URL:** [https://stock-pia-a.kimdc1226.workers.dev/](https://stock-pia-a.kimdc1226.workers.dev/)
 - **배포 형태:** 별도 빌드가 필요 없는 정적 HTML/CSS/JavaScript 사이트
 
 이 프로젝트는 GitHub에 소스를 보관하고 Netlify에서 외부에 공유할 수 있도록 배포한 상태입니다. 향후 외부 개발자가 수정할 때는 GitHub 저장소를 기준 원본으로 사용하고, 수정 내용을 `main` 브랜치에 반영한 뒤 Netlify의 Production deploy가 성공했는지 확인해야 합니다.
