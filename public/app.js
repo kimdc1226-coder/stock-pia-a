@@ -122,14 +122,34 @@
   const cardImg = card => `<img class="sc-media" src="${card.img}"${card.fb ? ` data-fallback="${card.fb}"` : ''} alt="" loading="lazy">`;
   const tint = ['tint-ice', 'tint-mint', 'tint-peach', 'tint-lilac'];
   const strategyHost = $('#strategy-cards');
-  if (strategyHost) strategyHost.innerHTML = content.strategies.map((s, i) => { const c = content.cards[s.id]; return `<button class="strategy-card glass ${tint[i % 4]}" type="button" id="strategy-${s.id}" data-strategy="${s.id}" aria-haspopup="dialog">${cardImg(c)}<i class="sc-shade" aria-hidden="true"></i><span class="strategy-number">${s.number}</span><span class="line-icon" aria-hidden="true">${ICONS[s.id]}</span><h3>${br(c.title)}</h3><p>${esc(c.text)}</p><span class="card-bottom">전략 자세히 보기 <span aria-hidden="true">↗</span></span></button>`; }).join('');
+  if (strategyHost) {
+    strategyHost.classList.add('pef-chapters');
+    strategyHost.innerHTML = '<nav class="pef-nav" aria-label="투자전략">' + content.strategies.map(s => `<a href="#strategy-${s.id}" data-chap="strategy-${s.id}"><b>${s.number}</b>${flat(content.cards[s.id].title)}</a>`).join('') + '</nav>' + content.strategies.map(s => { const c = content.cards[s.id]; return `<article class="pef-chapter" id="strategy-${s.id}" aria-labelledby="sc-${s.id}"><div class="pc-hero"><img class="pc-img" data-parallax="0.1" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="pc-shade" aria-hidden="true"></i><span class="pc-num" aria-hidden="true">${s.number}</span><div class="pc-copy"><span class="pc-sub">${esc(s.eyebrow)}</span><h3 id="sc-${s.id}">${flat(c.title)}</h3><p class="pc-lead">${esc(s.subtitle)}</p><p>${esc(s.description)}</p></div></div><div class="pc-funds pc-details">${s.details.map(([t, d2], i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h4>${esc(t)}</h4><p>${esc(d2)}</p></article>`).join('')}</div><p class="dialog-note pef-note">${esc(s.note)}</p></article>`; }).join('');
+    const goHash = () => { const el = location.hash && document.getElementById(location.hash.slice(1)); if (el && el.classList.contains('pef-chapter')) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 150, behavior: 'auto' }); };
+    setTimeout(goHash, 60); addEventListener('hashchange', goHash);
+    if ('IntersectionObserver' in window) {
+      const links = $$('.pef-nav a'); const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) links.forEach(l => l.classList.toggle('on', l.dataset.chap === en.target.id)); }), { rootMargin: '-35% 0px -55% 0px' });
+      $$('.pef-chapter').forEach(c => io.observe(c));
+    }
+  }
   const pefHost = $('#pef-cards');
-  if (pefHost) pefHost.innerHTML = content.pefThemes.map(t => { const c = content.cards[t.id]; return `<button class="strategy-card glass pef-card" type="button" id="pef-${t.id}" data-pef="${t.id}" aria-haspopup="dialog">${cardImg(c)}<i class="sc-shade" aria-hidden="true"></i><span class="strategy-number">${t.number}</span><span class="line-icon" aria-hidden="true">${ICONS[t.id]}</span><h3>${br(c.title)}</h3><p>${br(c.text)}</p><span class="card-bottom">파이프라인 세부보기 <span aria-hidden="true">↗</span></span></button>`; }).join('');
-  const tile = (href, id, label) => { const c = content.cards[id]; return `<a class="tile" href="${href}"><span class="tile-icon" aria-hidden="true">${ICONS[id]}</span><h3>${flat(c.title)}</h3><p>${flat(c.text)}</p><span class="tile-more">${label} <span aria-hidden="true">↗</span></span></a>`; };
+  if (pefHost) {
+    pefHost.classList.add('pef-chapters');
+    pefHost.innerHTML = '<nav class="pef-nav" aria-label="PEF 테마">' + content.pefThemes.map(t => `<a href="#pef-${t.id}" data-chap="pef-${t.id}"><b>${t.number}</b>${flat(content.cards[t.id].title)}</a>`).join('') + '</nav>' + content.pefThemes.map(t => { const c = content.cards[t.id]; return `<article class="pef-chapter" id="pef-${t.id}" aria-labelledby="pc-${t.id}"><div class="pc-hero"><img class="pc-img" data-parallax="0.1" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="pc-shade" aria-hidden="true"></i><span class="pc-num" aria-hidden="true">${t.number}</span><div class="pc-copy"><span class="pc-sub">${esc(t.subtitle)}</span><h3 id="pc-${t.id}">${flat(c.title)}</h3><p>${esc(t.summary)}</p></div></div><div class="pc-funds">${t.funds.map((f, i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h4>${esc(f.name)}</h4><p>${esc(f.business)}</p><ul class="pef-types" aria-label="펀드 형태">${f.types.map(x => `<li>${esc(x)}</li>`).join('')}</ul></article>`).join('')}</div></article>`; }).join('') + '<p class="dialog-note pef-note">조성 계획 단계의 펀드 구성안이며, 실제 펀드명·투자 구조·규모는 확정되지 않았습니다.</p>';
+    const goHash = () => { const el = location.hash && document.getElementById(location.hash.slice(1)); if (el && el.classList.contains('pef-chapter')) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 150, behavior: 'auto' }); };
+    setTimeout(goHash, 60); addEventListener('hashchange', goHash);
+    if ('IntersectionObserver' in window) {
+      const links = $$('.pef-nav a'); const io = new IntersectionObserver(es => es.forEach(en => { if (en.isIntersecting) links.forEach(l => l.classList.toggle('on', l.dataset.chap === en.target.id)); }), { rootMargin: '-35% 0px -55% 0px' });
+      $$('.pef-chapter').forEach(c => io.observe(c));
+    }
+  }
+  const tileImg = c => `<img class="tile-img" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="tile-shade" aria-hidden="true"></i>`;
+  const tile = (href, id, label, num) => { const c = content.cards[id]; return `<a class="tile tile-media" href="${href}">${tileImg(c)}<span class="tile-num" aria-hidden="true">${num}</span><span class="tile-icon" aria-hidden="true">${ICONS[id]}</span><h3>${br(c.title)}</h3><p>${flat(c.text)}</p><span class="tile-more">${label} <span aria-hidden="true">↗</span></span></a>`; };
+  const panel = (href, id, label, num) => { const c = content.cards[id]; return `<a class="pf-panel" href="${href}">${tileImg(c)}<span class="pf-num" aria-hidden="true">${num}</span><span class="pf-body"><span class="tile-icon" aria-hidden="true">${ICONS[id]}</span><h3>${flat(c.title)}</h3><p>${flat(c.text)}</p><span class="tile-more">${label} <span aria-hidden="true">↗</span></span></span></a>`; };
   const tilesS = $('#tiles-strategy');
-  if (tilesS) tilesS.innerHTML = content.strategies.map(s => tile(`/strategy/#strategy-${s.id}`, s.id, '자세히 보기')).join('');
+  if (tilesS) tilesS.innerHTML = content.strategies.map(s => tile(`/strategy/#strategy-${s.id}`, s.id, '자세히 보기', s.number)).join('');
   const tilesP = $('#tiles-pef');
-  if (tilesP) tilesP.innerHTML = content.pefThemes.map(t => tile(`/fund/#pef-${t.id}`, t.id, '자세히 보기')).join('');
+  if (tilesP) tilesP.innerHTML = content.pefThemes.map(t => panel(`/fund/#pef-${t.id}`, t.id, '자세히 보기', t.number)).join('');
   const feed = $('#disclosure-feed');
   if (feed) feed.innerHTML = content.disclosures.map(item => `<a class="disclosure-row" href="/disclosure/#${esc(item.category)}"><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span><span class="disclosure-status">자료 준비 중</span><span aria-hidden="true">↗</span></a>`).join('');
 
