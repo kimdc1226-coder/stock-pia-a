@@ -801,7 +801,7 @@ a.disclosure-row:hover .dr-title{color:var(--blue)}
 .vv-c:hover .vv-l{color:#fff}
 .vv-c b{margin-top:10px;font:800 clamp(15px,1.7vw,22px) var(--disp);letter-spacing:-.04em}
 .vv-c small{font:500 clamp(9px,.85vw,11px) var(--mono);letter-spacing:.08em;color:#bfdbfe;margin-top:3px}
-.vv-core{position:absolute;left:50%;top:43.5%;z-index:4;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(64px,8vw,96px);aspect-ratio:1;border-radius:50%;background:#fff;color:#0b1530;font:800 clamp(8px,.9vw,11px)/1.2 var(--mono);letter-spacing:.08em;text-align:center;box-shadow:0 0 0 8px #ffffff26,0 20px 40px -10px #000a;pointer-events:none}
+.vv-core{position:absolute;left:50%;top:54%;z-index:4;transform:translate(-50%,-50%);display:grid;place-items:center;width:clamp(64px,8vw,96px);aspect-ratio:1;border-radius:50%;background:#fff;color:#0b1530;font:800 clamp(8px,.9vw,11px)/1.2 var(--mono);letter-spacing:.08em;text-align:center;box-shadow:0 0 0 8px #ffffff26,0 20px 40px -10px #000a;pointer-events:none}
 .vv-core i{position:absolute;inset:-14px;border-radius:50%;border:1px solid #ffffff59;animation:vvPulse 3s ease-out infinite}
 @keyframes vvFloat{50%{transform:translateY(-8px)}}@keyframes vvPulse{from{transform:scale(.8);opacity:1}to{transform:scale(1.5);opacity:0}}
 .vv-list{display:grid;gap:0;margin:0;padding:0;list-style:none;border-top:1px solid #ffffff38}
