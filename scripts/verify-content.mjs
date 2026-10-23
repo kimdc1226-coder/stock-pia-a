@@ -27,7 +27,7 @@ assert.deepEqual(sums,[6000,10000,16000]);
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(match=>match[1]);
 assert.equal(new Set(ids).size,ids.length,'Unique IDs');
 for (const match of html.matchAll(/href="#([^"]+)"/g)) assert.ok(ids.includes(match[1]),`Anchor exists: ${match[1]}`);
-for (const file of ['public/index.html','public/styles.css','public/app.js','public/fx.js','public/data/site-content.js','public/assets/images/hero.jpg','public/assets/images/esg.jpg','public/assets/favicon.svg','public/assets/og-image.png']) assert.ok(fs.existsSync(path.join(root,file)),file);
+for (const file of ['public/index.html','public/styles.css','public/app.js','public/fx.js','public/data/site-content.js','public/assets/images/hero.jpg','public/assets/images/esg.jpg','public/assets/favicon.svg','public/assets/og-image-grand-stone.png']) assert.ok(fs.existsSync(path.join(root,file)),file);
 for (const m of html.matchAll(/(?:src|href|poster)="((?:assets|data)\/[^"?#]+)"/g)) assert.ok(fs.existsSync(path.join(root,'public',m[1])),`Local reference exists: ${m[1]}`);
 assert.ok(!/https?:\/\/(?:videos|images)\.(?:pexels|unsplash)\.com/.test(html), 'No external media URLs in index.html');
 for (const media of source.media) assert.ok(fs.existsSync(path.join(root,media.path)),media.path);
