@@ -5,6 +5,8 @@
   "assets": {
     "directory": "./public"
   },
+  // 옛 이름이 주소에 노출되는 기본 주소(stock-pia.kimdc1226.workers.dev)를 끈다. 사이트는 커스텀 도메인(www.grandstone-am.com)으로만 접속.
+  "workers_dev": false,
   // wrangler preview(비프로덕션 브랜치 미리보기)에 필요한 빈 블록
   "previews": {}
 }
