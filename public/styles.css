@@ -525,33 +525,61 @@ dialog[open]{animation:dlg .5s cubic-bezier(.16,.84,.24,1)}dialog[open]::backdro
 
 /* ===== Organization chart ===== */
 .organization{margin-top:120px}.organization>.eyebrow{margin-bottom:36px}
-.org-chart{--g:18px;--lh:44px;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));column-gap:0;align-items:start}
-.org-top{grid-column:1/4;grid-row:1;position:relative;display:flex;justify-content:center;padding-bottom:var(--lh)}
-.org-root{position:relative;z-index:2;width:300px;text-align:center;padding:26px 30px;border-radius:20px;background:linear-gradient(155deg,#1e3a8a,#172554 60%,#0e1a45);color:#fff;box-shadow:0 24px 50px -24px #172554f0}
-.org-root span{font:700 10px var(--mono);letter-spacing:.2em;color:#93c5fd}.org-root h3{font-size:28px;letter-spacing:-.05em;margin-top:6px;color:#fff}
-.org-top:before{content:'';position:absolute;left:50%;bottom:0;width:2px;height:var(--lh);background:#475569;transform:translateX(-1px)}
-.org-top:after{content:'';position:absolute;left:calc(50% + 150px);right:calc(0px - var(--g));top:calc((100% - var(--lh)) / 2 - 1px);border-top:2px dashed #94a3b8}
-.org-side{grid-column:4;grid-row:1;align-self:start;padding:0 0 0 var(--g);position:relative;z-index:2}
-
-.org-branch{grid-column:1/4;grid-row:2;display:grid;grid-template-columns:repeat(3,1fr)}
-.org-cell{position:relative;padding:var(--lh) calc(var(--g)/2) 0}
-.org-cell:before{content:'';position:absolute;top:0;left:0;right:0;border-top:2px solid #475569}
-.org-cell:first-child:before{left:50%}.org-cell:last-child:before{right:50%}
-.org-cell:after{content:'';position:absolute;top:0;left:50%;width:2px;height:var(--lh);background:#475569;transform:translateX(-1px)}
-.org-cell:before{transform-origin:50% 50%}
-.org-node{position:relative;height:100%;padding:26px 26px 28px;border-radius:20px;background:#fff;border:1px solid var(--line);box-shadow:0 1px 2px #0f172a0d,0 12px 28px -16px #0f172a33;transition:transform .5s cubic-bezier(.16,.84,.24,1),box-shadow .5s,border-color .3s}
-.org-node:hover{transform:translateY(-6px);border-color:#cbd5e1;box-shadow:0 24px 44px -20px #0f172a59}
-.org-node:before{content:'';position:absolute;left:26px;top:-1px;width:36px;height:3px;border-radius:0 0 3px 3px;background:var(--blue)}
-.org-node h4{font-size:19px;letter-spacing:-.04em;margin-bottom:10px}.org-node p{font-size:13px}
-.org-node.independent{background:#f1f5f9;border:1.5px dashed #94a3b8;box-shadow:none}.org-node.independent:before{background:var(--navy)}
-.org-node.independent>span{display:inline-block;font:700 9px var(--mono);letter-spacing:.14em;color:#fff;background:var(--navy);padding:4px 11px;border-radius:99px;margin-bottom:14px}
-.org-cell,.org-top,.org-side{opacity:1}
-@media(max-width:900px){.org-chart{grid-template-columns:1fr;--g:0px}
-.org-top{grid-column:1;justify-content:flex-start;padding-bottom:30px}.org-top:after{display:none}.org-top:before{left:30px;height:30px}.org-root{width:100%}
-.org-side{grid-column:1;grid-row:3;padding:30px 0 0 36px}.org-side:before{display:none}
-.org-branch{grid-column:1;grid-row:2;grid-template-columns:1fr;margin-left:30px;border-left:2px solid #475569}
-.org-cell,.org-cell:first-child{padding:0 0 18px 30px}.org-cell:before{top:50%;left:0;right:auto;width:30px;border-top:2px solid #475569;transform:translateY(-9px)}.org-cell:first-child:before,.org-cell:last-child:before{left:0;right:auto}.org-cell:after{display:none}.org-cell:last-child{padding-bottom:0}
-.org-side:after{content:'';position:absolute;left:30px;top:0;height:30px;border-left:2px dashed #94a3b8}}
+/* Organization chart (about #organization) — 이사회 → 대표이사 → 2개 본부 → 4개 부문. 점선 박스는 독립·보조 조직 */
+.og{--gap:40px;--ln:#475569;--dash:#94a3b8;max-width:1080px;margin:0 auto;display:flex;flex-direction:column}
+.og-box{position:relative;border-radius:18px;background:#fff;border:1px solid var(--line);box-shadow:0 1px 2px #0f172a0d,0 12px 28px -16px #0f172a33;padding:20px 22px;text-align:center}
+.og-box h3,.og-box h4{margin:0;letter-spacing:-.04em}
+.og-box h4{font-size:18px}
+.og-lv{display:contents}
+.og-solo{display:flex;justify-content:center}
+.og-top{width:260px;border:0;background:linear-gradient(155deg,#1e3a8a,#172554 60%,#0e1a45);box-shadow:0 24px 50px -24px #172554f0}
+.og-top h3{font-size:26px;color:#fff}
+.og-gap{display:grid;grid-template-columns:1fr 2px 1fr;min-height:96px}
+.og-trunk{display:block;background:var(--ln)}
+.og-l,.og-r{display:flex;align-items:center}
+.og-l{justify-content:flex-end}.og-r{justify-content:flex-start}
+.og-l:after,.og-r:before{content:'';flex:0 0 56px;height:0;border-top:2px dashed var(--dash)}
+.og-ind{width:210px;padding:15px 16px;background:#f1f5f9;border:1.5px dashed var(--dash);box-shadow:none}
+.og-groups{position:relative;display:grid;grid-template-columns:1fr 1fr;padding-top:var(--gap)}
+.og-groups:after{content:'';position:absolute;left:calc(50% - 1px);top:0;width:2px;height:var(--gap);background:var(--ln)}
+.og-groups:before{content:'';position:absolute;left:25%;right:25%;top:calc(var(--gap) - 1px);height:2px;background:var(--ln)}
+.og-group{position:relative;display:flex;flex-direction:column;align-items:center;padding-top:var(--gap)}
+.og-group:before{content:'';position:absolute;left:calc(50% - 1px);top:0;width:2px;height:var(--gap);background:var(--ln)}
+.og-hq{width:min(260px,92%);background:#fff;border-top:3px solid var(--blue)}
+.og-kids{position:relative;display:grid;grid-template-columns:1fr 1fr;width:100%;padding-top:calc(var(--gap) * 2)}
+.og-kids:after{content:'';position:absolute;left:calc(50% - 1px);top:0;width:2px;height:var(--gap);background:var(--ln)}
+.og-kids:before{content:'';position:absolute;left:25%;right:25%;top:calc(var(--gap) - 1px);height:2px;background:var(--ln)}
+.og-kid{position:relative;display:flex;flex-direction:column;align-items:center;padding:0 10px}
+.og-kid:before{content:'';position:absolute;left:calc(50% - 1px);top:calc(var(--gap) * -1);width:2px;height:var(--gap);background:var(--ln)}
+.og-dept{width:min(220px,100%)}
+.og-sub{position:relative;width:min(220px,100%);margin-top:30px;padding:11px 14px;border-radius:14px;background:#f8fafc;border:1px solid var(--line);font-size:13px;color:var(--mut);text-align:center}
+.og-sub:before{content:'';position:absolute;left:calc(50% - 1px);top:-30px;width:2px;height:30px;background:var(--ln)}
+.og-legend{max-width:1080px;margin:34px auto 0;font-size:12px;color:var(--faint);text-align:center}
+@media(max-width:900px){
+  .og{display:block}
+  .og-solo{display:block;position:relative}
+  .og-top{width:100%;text-align:left}
+  .og-lv{display:block;position:relative;margin:0 0 0 14px;padding:14px 0 2px 22px;border-left:2px solid var(--ln)}
+  .og-lv2{margin-left:52px}
+  .og-gap{display:block;min-height:0}.og-trunk{display:none}
+  .og-lv .og-solo{margin-bottom:14px}
+  .og-lv .og-solo:before,.og-l:before,.og-r:before{content:'';position:absolute;left:-22px;top:50%;width:22px;height:0;flex:none;border-top:2px solid var(--ln)}
+  .og-l,.og-r{display:block;position:relative;margin:0 0 12px}
+  .og-l:before,.og-r:before{border-top:2px dashed var(--dash)}
+  .og-l:after,.og-r:after{display:none}
+  .og-ind{width:100%;text-align:left}
+  .og-groups{display:block;padding:0}.og-groups:before,.og-groups:after{display:none}
+  .og-group{display:block;padding:0;margin-bottom:20px}
+  .og-group:before{left:-22px;top:32px;width:22px;height:0;background:none;border-top:2px solid var(--ln)}
+  .og-hq{width:100%;text-align:left}
+  .og-kids{display:block;width:auto;padding:0 0 0 22px;margin:14px 0 0 14px;border-left:2px solid var(--ln)}
+  .og-kids:before,.og-kids:after{display:none}
+  .og-kid{display:block;padding:0;margin-bottom:14px}
+  .og-kid:before{left:-22px;top:28px;width:22px;height:0;background:none;border-top:2px solid var(--ln)}
+  .og-dept{width:100%;text-align:left}
+  .og-sub{width:auto;margin:8px 0 0 16px;text-align:left}.og-sub:before{display:none}
+  .og-legend{text-align:left;margin-top:24px}
+}
 
 /* PEF pipeline */
 .pef{padding-top:40px}.pef .section-heading{margin-bottom:44px}
@@ -851,3 +879,13 @@ a.disclosure-row:hover .dr-title{color:var(--blue)}
 #philosophy-summary .phil-cards p{font-size:14px;color:var(--mut)}
 @media(max-width:1100px){#philosophy-summary .phil-cards{padding-top:0}}
 @media(max-width:640px){#philosophy-summary .phil-cards article{grid-template-columns:56px minmax(0,1fr);column-gap:14px}#philosophy-summary .phil-cards article>span{font-size:40px}}
+
+/* Brand logo (GRANDSTONE, transparent PNG) — shared header & footer. 로고 안에 회사명이 있어 별도 워드마크는 쓰지 않는다.
+   푸터는 어두운 남색 배경이라 남색 글자가 묻히므로, 로고는 그대로 두고 흰 바탕판을 깐다 */
+.brand-logo{display:block;height:58px;width:auto;max-width:none;object-fit:contain}
+.site-footer .brand{background:#fff;border-radius:16px;padding:10px 20px}
+.site-footer .brand-logo{height:66px}
+@media(max-width:960px){.brand-logo{height:48px}.site-footer .brand-logo{height:56px}}
+/* Contact: 전화·이메일 링크는 카드 글자색을 그대로 쓰고 마우스를 올리면 밑줄 */
+.contact-details a{color:inherit;text-decoration:none;border-bottom:1px solid transparent;transition:border-color .25s,color .25s}
+.contact-details a:hover,.contact-details a:focus-visible{color:#bfdbfe;border-bottom-color:currentColor}

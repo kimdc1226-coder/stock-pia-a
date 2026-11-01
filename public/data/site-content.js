@@ -40,7 +40,7 @@ window.SITE_CONTENT = {
       summary: '차세대 데이터센터(IDC), 반도체 소부장, 스마트 AI 물류 인프라 조성',
       funds: [
         { name: 'OO IDC센터 펀드', business: '하이퍼스케일 IDC 설립 및 운영 프로젝트 투자', types: ['Equity', 'Mezzanine', '회사채/PF'] },
-        { name: 'AI 테크 펀드', business: '메모리·비메모리 반도체 전·후공정 장비 소모성 핵심 부품 기업 투자', types: ['RCPS', 'Equity'] },
+        { name: 'Physical AI Tech 펀드', business: '메모리·비메모리 반도체 전·후공정 장비 소모성 핵심 부품 기업 투자', types: ['RCPS', 'Equity', 'Mezzanine'] },
         { name: 'AI 디지털 솔루션 펀드', business: 'AI 물류센터 자동화 설비, WMS, 물류 지능화 장비 관련 기업 및 프로젝트 투자', types: ['Equity', 'Mezzanine', '회사채/PF'] }
       ] },
     { id: 'energy', number: '02', eyebrow: 'PEF PIPELINE · THEME 02', title: '신재생에너지 솔루션', subtitle: 'Renewable Energy Solutions',

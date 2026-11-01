@@ -22,7 +22,7 @@
     energy: svg('<circle cx="12" cy="9" r="1.6"/><path d="M12 7.4V2.5M10.6 9.8 6.3 12.3M13.4 9.8l4.3 2.5M12 10.6V21M8.5 21h7"/>'),
     green: svg('<path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19c2.5-4 5-6.5 9-8.5"/>')
   };
-  const brand = `<a class="brand" href="/" aria-label="GRAND STONE 자산운용 홈"><span class="brand-symbol" aria-hidden="true"><i></i><i></i><i></i></span><span class="brand-type">GRAND STONE<small>ASSET MANAGEMENT</small></span></a>`;
+  const brand = `<a class="brand" href="/" aria-label="그랑스톤 자산운용 홈"><img class="brand-logo" src="/assets/logo-grandstone-sm.png" alt="그랑스톤 자산운용" width="460" height="240" decoding="async"></a>`;
   const current = content.nav.find(item => item.href !== '/' && path.startsWith(item.href));
 
   /* ---------- Shared header ---------- */
@@ -41,7 +41,7 @@
   if (footerHost) footerHost.outerHTML = `<footer class="site-footer"><div class="wrap">
     <div class="ft-top">${brand}<div class="footer-links"><button type="button" data-info="privacy">개인정보처리방침</button><button type="button" data-info="terms">이용약관</button><button type="button" data-info="consumer">금융소비자보호</button><button type="button" data-info="stewardship">스튜어드십코드</button></div><a class="top-link" href="#main" aria-label="맨 위로">↑</a></div>
     <nav class="ft-map" aria-label="사이트맵">${content.nav.map(item => `<div><a class="ft-parent" href="${item.href}">${esc(item.label)}</a>${item.children ? `<ul>${item.children.map(([label, href]) => `<li><a href="${href}">${esc(label)}</a></li>`).join('')}</ul>` : ''}</div>`).join('')}</nav>
-    <p class="business-info">GRAND STONE 자산운용 <span>법인명·대표자·사업자등록번호: 확인 필요</span><br>금융투자업 등록정보: 확인 필요 <span>준법감시인 심사필: 승인번호 및 유효기간 등록 예정</span></p>
+    <p class="business-info">그랑스톤 자산운용 <span>대표자: 김복기</span><span>법인명·사업자등록번호: 확인 필요</span><br>금융투자업 등록정보: 확인 필요 <span>준법감시인 심사필: 승인번호 및 유효기간 등록 예정</span></p>
     <div class="investment-notice"><strong>투자유의사항 · 검토용 초안</strong><p>투자에는 원금 손실 가능성이 있습니다. 과거 실적과 목표 수익률은 미래 성과를 보장하지 않습니다. 투자 전 상품설명서 및 약관을 확인하시기 바랍니다. 본 사이트의 목표 AUM·IRR·예상 수익률은 사업계획으로, 확정된 실적이나 수익 보장을 의미하지 않습니다.</p><p>본 자료는 정보 제공 목적으로만 작성되었으며, 특정 금융 상품의 매수 또는 매도를 권유하는 문서가 아닙니다. 본 자료에 수록된 정보는 엄격한 기준에 의해 작성되었으나 그 정확성과 완전성을 보장하지 않습니다.</p></div>
     <div class="footer-bottom"><span>© 2026 GRAND STONE ASSET MANAGEMENT.</span><span>검토용 프로토타입 · <button type="button" data-info="credits">이미지 출처</button></span></div>
   </div></footer>`;
@@ -244,13 +244,14 @@
     terms: ['이용약관', '고객사의 승인된 서비스 이용약관이 준비되면 이 위치에 전문과 시행일을 게시합니다. 현재 문구는 약관이 아닌 준비 상태 안내입니다.'],
     consumer: ['금융소비자보호', '금융소비자보호 기준, 민원 접수 채널과 담당자 정보는 확인 후 게시할 예정입니다. 금융투자업 등록 형태와 판매 구조에 맞는 최종 안내가 필요합니다.'],
     stewardship: ['스튜어드십코드', '스튜어드십코드 참여 여부와 수탁자 책임정책은 자료 수급 후 확정합니다. 현재 참여 또는 이행 실적을 표시하지 않습니다.'],
-    contact: ['투자·제휴 문의 안내', 'LP 출자, 프로젝트 펀드, 공동 투자 및 매각 자문을 위한 IR 연락처를 준비하고 있습니다. ir@grandstone-am.com은 사용 여부 확인 전이며 대표전화와 IR 전화는 임시값입니다. 연락처 확정 후 이메일·전화 연결을 제공합니다. 현재 문의 정보가 전송되거나 저장되지는 않습니다.'],
+    contact: ['투자·제휴 문의 안내', 'LP 출자, 프로젝트 펀드, 공동 투자 및 매각 자문 문의는 아래 연락처로 전화하시거나 이메일을 보내 주시기 바랍니다. 이 사이트에는 문의 내용을 전송하거나 저장하는 기능이 없습니다.'],
     credits: ['이미지 출처', '히어로·비전·철학·Contact 배경 영상과 일부 건축 이미지는 Pexels(K, ArtHouse Studio) 무료 영상·사진이며, 그 외 건축·ESG 인프라 이미지는 Unsplash 사진을 사용한 디자인 시안입니다. 실제 회사 사옥 또는 투자자산 사진이 아닙니다. 대표이사와 운용진 사진은 고객사 수급 대기 상태입니다.']
   };
+  const contactLinks = '<ul><li><a href="tel:0234541202">대표전화 02-3454-1202</a></li><li><a href="tel:01077445547">대표이사 직통 010-7744-5547</a></li><li><a href="mailto:kbk3333@gmail.com">kbk3333@gmail.com</a></li><li>서울시 강남구 테헤란로 27길 8, 엠타워 13층</li></ul>';
   const creditLinks = '<ul><li><a href="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab" target="_blank" rel="noopener noreferrer">건축 사진 / Unsplash 원본</a></li><li><a href="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e" target="_blank" rel="noopener noreferrer">에너지 인프라 사진 / Unsplash 원본</a></li><li><a href="https://www.pexels.com/video/building-with-exterior-glass-panels-2406631/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2406631</a></li><li><a href="https://www.pexels.com/video/aerial-view-of-buildings-2254324/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2254324</a></li><li><a href="https://www.pexels.com/video/drone-footage-of-buildings-4514373/" target="_blank" rel="noopener noreferrer">Pexels 영상 / ArtHouse Studio · 4514373</a></li><li><a href="https://www.pexels.com/video/high-rise-building-with-glass-panels-2256178/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2256178</a></li><li><a href="https://www.pexels.com/license/" target="_blank" rel="noopener noreferrer">Pexels License</a></li><li><a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash License</a></li></ul>';
   $$('[data-info]').forEach(button => button.addEventListener('click', () => {
     const [title, description] = info[button.dataset.info];
-    openDialog('GRAND STONE / INFORMATION', title, `<p>${esc(description)}</p>${button.dataset.info === 'credits' ? creditLinks : ''}`, button);
+    openDialog('GRAND STONE / INFORMATION', title, `<p>${esc(description)}</p>${button.dataset.info === 'credits' ? creditLinks : button.dataset.info === 'contact' ? contactLinks : ''}`, button);
   }));
 
   /* ---------- In-page sub navigation (same data as the header) ---------- */

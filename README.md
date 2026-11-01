@@ -1,6 +1,15 @@
-# STOCK PIA 자산운용 웹사이트 프로토타입
+# 그랑스톤 자산운용(GRAND STONE) 웹사이트 프로토타입
 
 제공 PPT 22장과 TIMEFOLIO·DS ASSET 직접 리서치를 반영한 한국어 반응형 웹 초안입니다. 딥네이비·브라스 브랜드 인트로, 투자 철학, 4대 투자전략, 목표 포트폴리오, 운용/리스크/ESG, 경영진, 공시 및 파트너십을 포함합니다.
+
+## 브랜드·콘텐츠 현황
+
+- **공식 사명:** 한글 `그랑스톤 자산운용`('그랑스톤'은 의도한 공식 발음), 영문 `GRAND STONE ASSET MANAGEMENT`, 영문 브랜드명 `GRAND STONE`.
+- **회사 로고(확정):** 금색 3단 막대 심볼 + 남색 `GRANDSTONE ASSET MANAGEMENT` 워드마크(투명 배경). 헤더·푸터·파비콘·공유 이미지(OG)에 같은 브랜드로 적용되어 있습니다. 어두운 푸터에서는 남색 글자가 묻히므로 로고는 그대로 두고 흰 바탕판을 깝니다. 로고 파일은 `public/assets/`의 `logo-grandstone.png`, `logo-grandstone-sm.png`, 파비콘 `favicon-32.png`·`favicon-192.png`·`apple-touch-icon.png`·`favicon.ico`, OG `og-image-grandstone.png`입니다(원본·후보 파일은 공개 폴더에 두지 않음). 이미지는 1년 캐시되므로 로고를 바꿀 때는 같은 이름으로 덮어쓰지 말고 새 파일명을 쓰세요.
+- **영문 표기 미결정:** 로고의 영문은 `GRANDSTONE`(붙여쓰기)인데, 화면 텍스트(푸터 카피라이트, 핵심 가치 그림 중앙, 팝업 상단, `og:site_name`)는 `GRAND STONE`(띄어쓰기)입니다. 하나로 통일할지 결정이 필요합니다.
+- **반영된 콘텐츠:** 한글 사명 통일, AI 파워 인프라 테마의 `Physical AI Tech 펀드`(RCPS·Equity·Mezzanine), 회사소개 조직도(이사회 → 대표이사 → 2개 본부 → 4개 부문 + 독립·보조 조직), 대표이사와 연락처(Contact·문의 팝업).
+- **여전히 미확정인 정보:** 법인명, 사업자등록번호, 금융투자업 등록정보, 준법감시인 심사필, 대표이사 경력·사진, 다른 경영진의 성명·경력.
+- 이 저장소에 로컬로만 있는 작업은 [HANDOFF.md](HANDOFF.md)(로컬 전용 인수인계 문서)에 정리합니다. 아래 일부 설명(단일 `index.html` 기준 수정 위치, Netlify 절차 등)은 예전 구조 기준이므로 최신 구조는 HANDOFF.md를 따르세요.
 
 ## 배포 구조 (보안)
 
