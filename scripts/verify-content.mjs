@@ -96,6 +96,7 @@ for (const page of pages) {
   // 공유용 메타: og:url은 페이지 주소와 같고 이미지는 실제 파일
   const ogUrl = (html.match(/property="og:url" content="([^"]+)"/) || [])[1];
   assert.equal(ogUrl, `https://www.grandstone-am.com${page.url}`, `${where}: og:url`);
+  assert.equal((html.match(/property="og:site_name" content="([^"]+)"/) || [])[1], 'GRANDSTONE', `${where}: og:site_name은 영문 브랜드명 GRANDSTONE이어야 한다`);
   for (const key of ['property="og:image"', 'name="twitter:image"']) {
     const value = (html.match(new RegExp(`${key} content="([^"]+)"`)) || [])[1];
     assert.ok(value && value.startsWith('https://www.grandstone-am.com/assets/'), `${where}: ${key} 주소`);
@@ -135,6 +136,11 @@ const publicText = pages.map(p => p.html).join('\n') + '\n' + appJs + '\n' + sit
 // 1. 사명: 공식 한글명은 '그랑스톤 자산운용', 옛 사명과 '그랜드스톤'은 화면에 없어야 한다
 assert.ok(!/stock[\s\-_.]*pia|스톡\s*피아|stockpia/i.test(publicText), '옛 사명(STOCK PIA)이 남아 있음');
 assert.ok(!publicText.includes('그랜드스톤'), "공식 한글명은 '그랑스톤'이다");
+// 영문 표기: 브랜드명 GRANDSTONE, 전체명 GRANDSTONE ASSET MANAGEMENT (로고·명함과 동일, 띄어쓴 'GRAND STONE'은 쓰지 않는다)
+assert.ok(!/GRAND\s+STONE/i.test(publicText), "영문 브랜드명은 GRANDSTONE(붙여쓰기)이다");
+assert.ok(appJs.includes('© 2026 GRANDSTONE ASSET MANAGEMENT.'), '푸터 카피라이트의 영문 전체명');
+assert.ok(appJs.includes("openDialog('GRANDSTONE / INFORMATION'"), '팝업 상단의 영문 브랜드명');
+assert.ok(pageByUrl.get('/').html.includes('<i></i>GRANDSTONE</span>'), '핵심 가치 그림 가운데의 영문 브랜드명');
 assert.ok(appJs.includes('alt="그랑스톤 자산운용"') && appJs.includes('/assets/logo-grandstone-sm.png'), '헤더·푸터 공통 로고(GS 골드)가 적용되어야 한다');
 assert.ok(!/brand-symbol|brand-type/.test(appJs), '옛 파란 막대 로고가 남아 있음');
 // 2. 펀드명·투자 형태

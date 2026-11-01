@@ -1,4 +1,4 @@
-/* GRAND STONE — shared layout (header/footer/dialog) + per-page features.
+/* GRANDSTONE — shared layout (header/footer/dialog) + per-page features.
    All financial figures are goals or projections. No live/real performance is implied. */
 (() => {
   'use strict';
@@ -43,7 +43,7 @@
     <nav class="ft-map" aria-label="사이트맵">${content.nav.map(item => `<div><a class="ft-parent" href="${item.href}">${esc(item.label)}</a>${item.children ? `<ul>${item.children.map(([label, href]) => `<li><a href="${href}">${esc(label)}</a></li>`).join('')}</ul>` : ''}</div>`).join('')}</nav>
     <p class="business-info">그랑스톤 자산운용 <span>대표자: 김복기</span><span>법인명·사업자등록번호: 확인 필요</span><br>금융투자업 등록정보: 확인 필요 <span>준법감시인 심사필: 승인번호 및 유효기간 등록 예정</span></p>
     <div class="investment-notice"><strong>투자유의사항 · 검토용 초안</strong><p>투자에는 원금 손실 가능성이 있습니다. 과거 실적과 목표 수익률은 미래 성과를 보장하지 않습니다. 투자 전 상품설명서 및 약관을 확인하시기 바랍니다. 본 사이트의 목표 AUM·IRR·예상 수익률은 사업계획으로, 확정된 실적이나 수익 보장을 의미하지 않습니다.</p><p>본 자료는 정보 제공 목적으로만 작성되었으며, 특정 금융 상품의 매수 또는 매도를 권유하는 문서가 아닙니다. 본 자료에 수록된 정보는 엄격한 기준에 의해 작성되었으나 그 정확성과 완전성을 보장하지 않습니다.</p></div>
-    <div class="footer-bottom"><span>© 2026 GRAND STONE ASSET MANAGEMENT.</span><span>검토용 프로토타입 · <button type="button" data-info="credits">이미지 출처</button></span></div>
+    <div class="footer-bottom"><span>© 2026 GRANDSTONE ASSET MANAGEMENT.</span><span>검토용 프로토타입 · <button type="button" data-info="credits">이미지 출처</button></span></div>
   </div></footer>`;
   document.body.insertAdjacentHTML('beforeend', '<dialog id="detail-dialog" aria-labelledby="dialog-title"><div class="dialog-inner"><button type="button" class="dialog-close" aria-label="닫기">×</button><p class="eyebrow" id="dialog-eyebrow"></p><h2 id="dialog-title"></h2><div id="dialog-body"></div></div></dialog>');
 
@@ -251,7 +251,7 @@
   const creditLinks = '<ul><li><a href="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab" target="_blank" rel="noopener noreferrer">건축 사진 / Unsplash 원본</a></li><li><a href="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e" target="_blank" rel="noopener noreferrer">에너지 인프라 사진 / Unsplash 원본</a></li><li><a href="https://www.pexels.com/video/building-with-exterior-glass-panels-2406631/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2406631</a></li><li><a href="https://www.pexels.com/video/aerial-view-of-buildings-2254324/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2254324</a></li><li><a href="https://www.pexels.com/video/drone-footage-of-buildings-4514373/" target="_blank" rel="noopener noreferrer">Pexels 영상 / ArtHouse Studio · 4514373</a></li><li><a href="https://www.pexels.com/video/high-rise-building-with-glass-panels-2256178/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2256178</a></li><li><a href="https://www.pexels.com/license/" target="_blank" rel="noopener noreferrer">Pexels License</a></li><li><a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash License</a></li></ul>';
   $$('[data-info]').forEach(button => button.addEventListener('click', () => {
     const [title, description] = info[button.dataset.info];
-    openDialog('GRAND STONE / INFORMATION', title, `<p>${esc(description)}</p>${button.dataset.info === 'credits' ? creditLinks : button.dataset.info === 'contact' ? contactLinks : ''}`, button);
+    openDialog('GRANDSTONE / INFORMATION', title, `<p>${esc(description)}</p>${button.dataset.info === 'credits' ? creditLinks : button.dataset.info === 'contact' ? contactLinks : ''}`, button);
   }));
 
   /* ---------- In-page sub navigation (same data as the header) ---------- */
