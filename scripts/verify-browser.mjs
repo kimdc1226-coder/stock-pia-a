@@ -170,6 +170,20 @@ try {
       ok(st.sw <= st.cw && st.broken.length === 0 && issues.length === 0, `${url} ${w}×${h}: 가로 넘침·깨진 이미지·콘솔 오류·CSP 차단 없음`, st.sw > st.cw || st.broken.length || issues.length ? { scrollWidth: st.sw, clientWidth: st.cw, broken: st.broken, issues } : undefined);
     }
   }
+  // 줄바꿈: 함께 읽혀야 하는 표현(.nb)이 갈라지지 않고, 주요 설명문 끝에 짧은 단어 하나만 남지 않는다
+  const wrapProbe = `(sel=>{const out={split:[],orphan:[]};
+    for(const nb of document.querySelectorAll(sel.split(',').map(x=>x.trim()+' .nb').join(','))){const r=document.createRange();r.selectNodeContents(nb);if(new Set([...r.getClientRects()].filter(x=>x.width>0).map(x=>Math.round(x.top/4))).size>1)out.split.push(nb.textContent)}
+    for(const el of document.querySelectorAll(sel)){if(el.offsetParent===null)continue;const toks=[];const w=document.createTreeWalker(el,NodeFilter.SHOW_TEXT);let n;
+      while(n=w.nextNode()){const re=/\\S+/g;let m;while(m=re.exec(n.nodeValue)){const r=document.createRange();r.setStart(n,m.index);r.setEnd(n,m.index+m[0].length);const rc=[...r.getClientRects()].filter(x=>x.width>0);if(rc.length)toks.push({t:m[0],top:Math.round(rc[rc.length-1].top/4)})}}
+      if(!toks.length)continue;const lastTop=Math.max(...toks.map(t=>t.top)),firstTop=Math.min(...toks.map(t=>t.top));if(lastTop===firstTop)continue;
+      const last=toks.filter(t=>t.top===lastTop).map(t=>t.t);if(last.length===1&&last[0].replace(/[.,·]/g,'').length<=4)out.orphan.push(el.textContent.trim().slice(0,30)+' … '+last[0])}
+    return out})`;
+  const wrapAreas = [['/contact/', '.page-hero p, #contact-title ~ p'], ['/', '.cta-band p, #tiles-strategy p, #tiles-pef p'], ['/fund/', '#pef-ai .pc-copy p'], ['/philosophy/', '.step-stack p'], ['/strategy/', '#strategy-buyout .pc-funds p, #value-up p']];
+  for (const [w, h, mobile] of [[1440, 900, false], [1024, 768, false], [390, 844, true], [320, 640, true]]) {
+    const bad = [];
+    for (const [url, sel] of wrapAreas) { await open(url, { width: w, height: h, mobile, init: hideToday }); const r = await js(`${wrapProbe}(${JSON.stringify(sel)})`); bad.push(...r.split.map(x => `${url} 분리: ${x}`), ...r.orphan.map(x => `${url} 끝 단독: ${x}`)); }
+    ok(bad.length === 0, `줄바꿈 ${w}×${h}: 묶음 표현 분리·설명문 끝 짧은 단독 단어 없음`, bad);
+  }
   // 모바일 메뉴 열기/닫기
   await open('/about/', { width: 390, height: 844, mobile: true, init: hideToday });
   await js(`document.querySelector('.menu-toggle').click()`); await sleep(200);
@@ -182,12 +196,35 @@ try {
     const top = await js(`(()=>{const el=document.getElementById('${id}');return el?Math.round(el.getBoundingClientRect().top):null})()`);
     ok(top !== null && top >= -10 && top < 400, `앵커 ${url}: 해당 위치로 이동`, top);
   }
-  // 공시: 빈 상태·분류·검색
+  // 공시: 준비 중 예시 3개('자료 준비 중'), 분류·검색·초기화, 클릭 시 준비 중 안내(파일 링크 없음)
+  const rowsJs = sel => `[...document.querySelectorAll('${sel} .disclosure-row')].map(r=>[...r.children].map(c=>c.textContent.trim()).join('|'))`;
+  const samples = ['경영공시|영업보고서 및 결산 공고|자료 준비 중|↗', '펀드공시|펀드 운용보고서 및 수시 공시|자료 준비 중|↗', '리서치|시장 전망 및 투자 인사이트|자료 준비 중|↗'];
   await open('/disclosure/', { init: hideToday });
-  const dis = await js(`(async()=>{const t=()=>document.getElementById('disclosure-list').textContent.trim();const a=t();document.querySelector('#disclosure-filters [data-filter="fund"]').click();const b=t();const pressed=document.querySelector('#disclosure-filters [data-filter="fund"]').getAttribute('aria-pressed');const i=document.getElementById('search-input');i.value='보고서';i.dispatchEvent(new Event('input'));const c=t();document.getElementById('reset-search')?.click();return {a,b,pressed,c,d:t(),status:document.getElementById('disclosure-status').textContent}})()`);
-  ok(dis.a === '등록된 공시자료가 없습니다.' && dis.b === dis.a && dis.pressed === 'true' && dis.c.startsWith('검색 조건에 맞는 자료가 없습니다.') && dis.d === dis.a, '공시: 등록 자료 없음 표시, 분류·검색·초기화 동작', dis);
+  const dis = await js(`(async()=>{const rows=()=>${rowsJs('#disclosure-list')};const a=rows();document.querySelector('#disclosure-filters [data-filter="fund"]').click();const b=rows();const pressed=document.querySelector('#disclosure-filters [data-filter="fund"]').getAttribute('aria-pressed');
+    const i=document.getElementById('search-input');i.value='없는자료';i.dispatchEvent(new Event('input'));const c=document.getElementById('disclosure-list').textContent.trim();document.getElementById('reset-search')?.click();const d=rows();
+    i.value='인사이트';i.dispatchEvent(new Event('input'));const e=rows();i.value='';i.dispatchEvent(new Event('input'));
+    return {a,b,pressed,c,d,e,status:document.getElementById('disclosure-status').textContent,links:document.querySelectorAll('#disclosure-list a[href]').length}})()`);
+  ok(JSON.stringify(dis.a) === JSON.stringify(samples) && JSON.stringify(dis.d) === JSON.stringify(samples) && dis.status === '3개 항목 · 자료 준비 중' && dis.links === 0, "공시 페이지: 준비 중 예시 3개·'자료 준비 중' 표시, 파일 링크 없음", dis);
+  ok(JSON.stringify(dis.b) === JSON.stringify([samples[1]]) && dis.pressed === 'true' && dis.c.startsWith('검색 조건에 맞는 자료가 없습니다.') && JSON.stringify(dis.e) === JSON.stringify([samples[2]]), '공시 페이지: 분류·검색·초기화 동작', dis);
+  await js(`document.querySelector('#disclosure-list [data-disclosure="management"]').click()`); await sleep(250);
+  const pend = await js(`({open:document.getElementById('detail-dialog').open,title:document.getElementById('dialog-title').textContent,body:document.getElementById('dialog-body').textContent,links:document.querySelectorAll('#dialog-body a').length})`);
+  await key('Escape');
+  ok(pend.open && pend.title === '영업보고서 및 결산 공고' && pend.body.includes('자료 준비 중입니다.') && pend.links === 0 && !(await js(`document.getElementById('detail-dialog').open`)), "공시 페이지: 예시 클릭 시 '자료 준비 중' 안내(다운로드 없음), Esc로 닫힘", pend);
   await open('/', { init: hideToday });
-  ok(await js(`document.getElementById('disclosure-feed').textContent.trim()`) === '등록된 공시자료가 없습니다.', '메인 공시 요약: 등록 자료 없음 표시');
+  ok(JSON.stringify(await js(rowsJs('#disclosure-feed'))) === JSON.stringify(samples), "메인 공시 요약: 준비 중 예시 3개·'자료 준비 중' 표시");
+  await shot('home-notices-1440x900');
+  // Value-Up 카드: 라벨·제목·설명 시작 높이 동일 / Physical AI 테마 제목 한 줄, 다른 테마 크기 유지
+  for (const [w, h, mobile] of [[1920, 1080, false], [1440, 900, false], [1366, 768, false], [390, 844, true], [320, 640, true]]) {
+    await open('/strategy/', { width: w, height: h, mobile, init: hideToday });
+    const vu = await js(`[...document.querySelectorAll('.value-up-grid article')].map(a=>['span','h4','p'].map(s=>Math.round(a.querySelector(s).getBoundingClientRect().top)))`);
+    const same = i => new Set(vu.map(c => c[i])).size === 1;
+    if (!mobile) ok(same(0) && same(1) && same(2), `Value-Up ${w}×${h}: 라벨·제목·설명 시작 높이 동일`, vu);
+    else { const gaps = vu.map(([s, t]) => t - s); ok(gaps.every(g => g === gaps[0] && g < 80), `Value-Up ${w}×${h}(세로 배치): 라벨→제목 간격 동일·큰 빈 공간 없음`, gaps); }
+    await open('/fund/', { width: w, height: h, mobile, init: hideToday });
+    const ai = await js(`(()=>{const t=document.getElementById('pc-ai'),r=document.createRange();r.selectNodeContents(t);const lines=new Set([...r.getClientRects()].map(x=>Math.round(x.top))).size;const box=t.closest('.pc-hero').getBoundingClientRect(),tb=t.getBoundingClientRect();
+      const other=parseFloat(getComputedStyle(document.getElementById('pc-energy')).fontSize);return {text:t.textContent,lines,fontSize:parseFloat(getComputedStyle(t).fontSize),other,inside:tb.left>=box.left&&tb.right<=box.right,overflow:t.scrollWidth>t.clientWidth,ellipsis:getComputedStyle(t).textOverflow}})()`);
+    ok(ai.text === 'Physical AI 파워 인프라' && ai.lines === 1 && ai.inside && !ai.overflow && ai.ellipsis !== 'ellipsis' && ai.fontSize <= ai.other && ai.fontSize >= 24, `Physical AI 제목 ${w}×${h}: 한 줄 표시, 잘림·넘침 없음 (${ai.fontSize.toFixed(1)}px, 다른 테마 ${ai.other.toFixed(1)}px)`, ai);
+  }
 } finally {
   ws.close(); proc.kill(); server.close();
   await sleep(300); try { fs.rmSync(profile, { recursive: true, force: true }); } catch {}

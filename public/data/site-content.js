@@ -51,8 +51,15 @@ window.SITE_CONTENT = {
         { name: '글로벌 메탈 리사이클링 펀드', business: '고순도 스크랩 수입 및 분리·가공 후 재수출하는 금속 재활용 특화 투자', types: ['Equity', 'PF'] }
       ] }
   ],
-  // 실제 공시자료만 등록한다(예시 게시물 금지). 형식: { category: 'management'|'fund'|'research', label, title, date: 'YYYY-MM-DD', file: '/files/disclosure/....pdf' }
-  disclosures: []
+  // 실제 공시자료. 형식: { category: 'management'|'fund'|'research', label, title, date: 'YYYY-MM-DD', file: '/files/disclosure/....pdf' }
+  // 한 건이라도 등록하면 아래 준비 중 예시(disclosureSamples)는 표시하지 않는다.
+  disclosures: [],
+  // 준비 중 예시: 실제 공시가 아니므로 게시일·파일을 넣지 않는다. 화면에는 '자료 준비 중'으로 표시.
+  disclosureSamples: [
+    { category: 'management', label: '경영공시', title: '영업보고서 및 결산 공고', description: '결산기, 공시 기준일 및 승인된 영업보고서·재무제표 원본을 수급한 뒤 등록합니다.' },
+    { category: 'fund', label: '펀드공시', title: '펀드 운용보고서 및 수시 공시', description: '실제 운용 펀드명, 공시 유형, 기준일과 승인된 PDF를 수급한 뒤 등록합니다.' },
+    { category: 'research', label: '리서치', title: '시장 전망 및 투자 인사이트', description: '발행일, 작성자, 준법 검토가 완료된 리서치 자료를 수급한 뒤 등록합니다.' }
+  ]
 };
 
 SITE_CONTENT.nav = [

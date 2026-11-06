@@ -8,6 +8,9 @@
   const esc = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const br = value => esc(value).replace(/\n/g, '<br>');
   const flat = value => esc(value).replace(/\n/g, ' ');
+  // 함께 읽혀야 하는 표현만 줄바꿈 금지(문단 전체 nowrap 아님)
+  const KEEP = /공동 투자\(Co-investment\)[가-힣]*|Co-investment|구조화 투자|Physical AI|AI·신재생에너지|지분투자·Mezzanine·대출|[가-힣]+\([A-Za-z]+\)[가-힣]*/g;
+  const keep = html => html.replace(KEEP, '<span class="nb">$&</span>');
   const path = location.pathname.replace(/index\.html$/, '');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktop = window.matchMedia('(min-width: 961px)');
@@ -41,7 +44,7 @@
     <div class="ft-top">${brand}<div class="footer-links"><button type="button" data-info="privacy">개인정보처리방침</button><button type="button" data-info="consumer">금융소비자보호</button></div><a class="top-link" href="#main" aria-label="맨 위로">↑</a></div>
     <nav class="ft-map" aria-label="사이트맵">${content.nav.map(item => `<div><a class="ft-parent" href="${item.href}">${esc(item.label)}</a>${item.children ? `<ul>${item.children.map(([label, href]) => `<li><a href="${href}">${esc(label)}</a></li>`).join('')}</ul>` : ''}</div>`).join('')}</nav>
     <p class="business-info">그랑스톤 자산운용 <span>대표자: 김복기</span><span>사업자등록번호: 374-88-02362</span><br>금융투자업 등록정보: 일반 사모집합투자업 (2022-08-29)</p>
-    <div class="investment-notice"><strong>투자유의사항</strong><p>투자에는 원금 손실 가능성이 있습니다. 과거 실적과 목표 수익률은 미래 성과를 보장하지 않습니다. 투자 전 상품설명서 및 약관을 확인하시기 바랍니다. 본 사이트의 목표 AUM·IRR·예상 수익률은 사업계획으로, 확정된 실적이나 수익 보장을 의미하지 않습니다.</p><p>본 자료는 정보 제공 목적으로만 작성되었으며, 특정 금융 상품의 매수 또는 매도를 권유하는 문서가 아닙니다. 본 자료에 수록된 정보는 엄격한 기준에 의해 작성되었으나 그 정확성과 완전성을 보장하지 않습니다.</p></div>
+    <div class="investment-notice"><strong>투자유의사항</strong><p>투자에는 원금 손실 가능성이 있습니다. 과거 실적과 목표 수익률은 미래 성과를 보장하지 않습니다. 투자 전 상품설명서 및 약관을 확인하시기 바랍니다. 본 사이트의 목표 <span class="nb">AUM·IRR·예상</span> 수익률은 사업계획으로, 확정된 실적이나 수익 보장을 의미하지 않습니다.</p><p>본 자료는 정보 제공 목적으로만 작성되었으며, 특정 금융 상품의 매수 또는 매도를 권유하는 문서가 아닙니다. 본 자료에 수록된 정보는 엄격한 기준에 의해 작성되었으나 그 정확성과 완전성을 보장하지 않습니다.</p></div>
     <div class="footer-bottom"><span>© 2026 GRANDSTONE ASSET MANAGEMENT.</span></div>
   </div></footer>`;
   document.body.insertAdjacentHTML('beforeend', '<dialog id="detail-dialog" aria-labelledby="dialog-title"><div class="dialog-inner"><button type="button" class="dialog-close" aria-label="닫기">×</button><p class="eyebrow" id="dialog-eyebrow"></p><h2 id="dialog-title"></h2><div id="dialog-body"></div></div></dialog>');
@@ -123,7 +126,7 @@
   const strategyHost = $('#strategy-cards');
   if (strategyHost) {
     strategyHost.classList.add('pef-chapters');
-    strategyHost.innerHTML = '<nav class="pef-nav" aria-label="투자전략">' + content.strategies.map(s => `<a href="#strategy-${s.id}" data-chap="strategy-${s.id}"><b>${s.number}</b>${flat(content.cards[s.id].title)}</a>`).join('') + '</nav>' + content.strategies.map(s => { const c = content.cards[s.id]; return `<article class="pef-chapter" id="strategy-${s.id}" aria-labelledby="sc-${s.id}"><div class="pc-hero"><img class="pc-img" data-parallax="0.1" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="pc-shade" aria-hidden="true"></i><span class="pc-num" aria-hidden="true">${s.number}</span><div class="pc-copy"><span class="pc-sub">${esc(s.eyebrow)}</span><h3 id="sc-${s.id}">${flat(c.title)}</h3><p class="pc-lead">${esc(s.subtitle)}</p><p>${esc(s.description)}</p></div></div><div class="pc-funds pc-details">${s.details.map(([t, d2], i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h4>${esc(t)}</h4><p>${esc(d2)}</p></article>`).join('')}</div><p class="dialog-note pef-note">${esc(s.note)}</p></article>`; }).join('');
+    strategyHost.innerHTML = '<nav class="pef-nav" aria-label="투자전략">' + content.strategies.map(s => `<a href="#strategy-${s.id}" data-chap="strategy-${s.id}"><b>${s.number}</b>${flat(content.cards[s.id].title)}</a>`).join('') + '</nav>' + content.strategies.map(s => { const c = content.cards[s.id]; return `<article class="pef-chapter" id="strategy-${s.id}" aria-labelledby="sc-${s.id}"><div class="pc-hero"><img class="pc-img" data-parallax="0.1" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="pc-shade" aria-hidden="true"></i><span class="pc-num" aria-hidden="true">${s.number}</span><div class="pc-copy"><span class="pc-sub">${esc(s.eyebrow)}</span><h3 id="sc-${s.id}">${flat(c.title)}</h3><p class="pc-lead">${esc(s.subtitle)}</p><p>${keep(esc(s.description))}</p></div></div><div class="pc-funds pc-details">${s.details.map(([t, d2], i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h4>${esc(t)}</h4><p>${keep(esc(d2))}</p></article>`).join('')}</div><p class="dialog-note pef-note">${esc(s.note)}</p></article>`; }).join('');
     const goHash = () => { const el = location.hash && document.getElementById(location.hash.slice(1)); if (el && el.classList.contains('pef-chapter')) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 150, behavior: 'auto' }); };
     setTimeout(goHash, 60); addEventListener('hashchange', goHash);
     if ('IntersectionObserver' in window) {
@@ -134,7 +137,7 @@
   const pefHost = $('#pef-cards');
   if (pefHost) {
     pefHost.classList.add('pef-chapters');
-    pefHost.innerHTML = '<nav class="pef-nav" aria-label="PEF 테마">' + content.pefThemes.map(t => `<a href="#pef-${t.id}" data-chap="pef-${t.id}"><b>${t.number}</b>${flat(content.cards[t.id].title)}</a>`).join('') + '</nav>' + content.pefThemes.map(t => { const c = content.cards[t.id]; return `<article class="pef-chapter" id="pef-${t.id}" aria-labelledby="pc-${t.id}"><div class="pc-hero"><img class="pc-img" data-parallax="0.1" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="pc-shade" aria-hidden="true"></i><span class="pc-num" aria-hidden="true">${t.number}</span><div class="pc-copy"><span class="pc-sub">${esc(t.subtitle)}</span><h3 id="pc-${t.id}">${flat(c.title)}</h3><p>${esc(t.summary)}</p></div></div><div class="pc-funds">${t.funds.map((f, i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h4>${esc(f.name)}</h4><p>${esc(f.business)}</p><ul class="pef-types" aria-label="펀드 형태">${f.types.map(x => `<li>${esc(x)}</li>`).join('')}</ul></article>`).join('')}</div></article>`; }).join('') + '<p class="dialog-note pef-note">조성 계획 단계의 펀드 구성안이며, 실제 펀드명·투자 구조·규모는 확정되지 않았습니다.</p>';
+    pefHost.innerHTML = '<nav class="pef-nav" aria-label="PEF 테마">' + content.pefThemes.map(t => `<a href="#pef-${t.id}" data-chap="pef-${t.id}"><b>${t.number}</b>${flat(content.cards[t.id].title)}</a>`).join('') + '</nav>' + content.pefThemes.map(t => { const c = content.cards[t.id]; return `<article class="pef-chapter" id="pef-${t.id}" aria-labelledby="pc-${t.id}"><div class="pc-hero"><img class="pc-img" data-parallax="0.1" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="pc-shade" aria-hidden="true"></i><span class="pc-num" aria-hidden="true">${t.number}</span><div class="pc-copy"><span class="pc-sub">${esc(t.subtitle)}</span><h3 id="pc-${t.id}">${flat(c.title)}</h3><p>${keep(esc(t.summary))}</p></div></div><div class="pc-funds">${t.funds.map((f, i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h4>${esc(f.name)}</h4><p>${esc(f.business)}</p><ul class="pef-types" aria-label="펀드 형태">${f.types.map(x => `<li>${esc(x)}</li>`).join('')}</ul></article>`).join('')}</div></article>`; }).join('') + '<p class="dialog-note pef-note">조성 계획 단계의 펀드 구성안이며, 실제 펀드명·투자 구조·규모는 확정되지 않았습니다.</p>';
     const goHash = () => { const el = location.hash && document.getElementById(location.hash.slice(1)); if (el && el.classList.contains('pef-chapter')) window.scrollTo({ top: el.getBoundingClientRect().top + scrollY - 150, behavior: 'auto' }); };
     setTimeout(goHash, 60); addEventListener('hashchange', goHash);
     if ('IntersectionObserver' in window) {
@@ -143,18 +146,22 @@
     }
   }
   const tileImg = c => `<img class="tile-img" src="${c.img}"${c.fb ? ` data-fallback="${c.fb}"` : ''} alt="" loading="lazy"><i class="tile-shade" aria-hidden="true"></i>`;
-  const tile = (href, id, label, num) => { const c = content.cards[id]; return `<a class="tile tile-media" href="${href}">${tileImg(c)}<span class="tile-num" aria-hidden="true">${num}</span><span class="tile-icon" aria-hidden="true">${ICONS[id]}</span><h3>${br(c.title)}</h3><p>${flat(c.text)}</p><span class="tile-more">${label} <span aria-hidden="true">↗</span></span></a>`; };
-  const panel = (href, id, label, num) => { const c = content.cards[id]; return `<a class="pf-panel" href="${href}">${tileImg(c)}<span class="pf-num" aria-hidden="true">${num}</span><span class="pf-body"><span class="tile-icon" aria-hidden="true">${ICONS[id]}</span><h3>${flat(c.title)}</h3><p>${flat(c.text)}</p><span class="tile-more">${label} <span aria-hidden="true">↗</span></span></span></a>`; };
+  const tile = (href, id, label, num) => { const c = content.cards[id]; return `<a class="tile tile-media" href="${href}">${tileImg(c)}<span class="tile-num" aria-hidden="true">${num}</span><span class="tile-icon" aria-hidden="true">${ICONS[id]}</span><h3>${br(c.title)}</h3><p>${keep(flat(c.text))}</p><span class="tile-more">${label} <span aria-hidden="true">↗</span></span></a>`; };
+  const panel = (href, id, label, num) => { const c = content.cards[id]; return `<a class="pf-panel" href="${href}">${tileImg(c)}<span class="pf-num" aria-hidden="true">${num}</span><span class="pf-body"><span class="tile-icon" aria-hidden="true">${ICONS[id]}</span><h3>${flat(c.title)}</h3><p>${keep(flat(c.text))}</p><span class="tile-more">${label} <span aria-hidden="true">↗</span></span></span></a>`; };
   const tilesS = $('#tiles-strategy');
   if (tilesS) tilesS.innerHTML = content.strategies.map(s => tile(`/strategy/#strategy-${s.id}`, s.id, '자세히 보기', s.number)).join('');
   const tilesP = $('#tiles-pef');
   if (tilesP) tilesP.innerHTML = content.pefThemes.map(t => panel(`/fund/#pef-${t.id}`, t.id, '자세히 보기', t.number)).join('');
-  // Disclosures: only real, approved documents go into content.disclosures ({ category, label, title, date, file }).
+  // Disclosures: real documents live in content.disclosures ({ category, label, title, date, file }).
+  // Until one is registered, the "자료 준비 중" samples are shown instead (never both, never with dates or files).
   const emptyDisclosures = '<div class="empty-state"><p>등록된 공시자료가 없습니다.</p></div>';
+  const disclosureSamplesOnly = !content.disclosures.length;
+  const disclosureItems = disclosureSamplesOnly ? content.disclosureSamples || [] : content.disclosures;
+  const pendingStatus = '<span class="disclosure-status">자료 준비 중</span>';
   const disclosureHref = item => item.file || `/disclosure/#${item.category}`;
   const fileAttrs = item => item.file ? ' target="_blank" rel="noopener"' : '';
   const feed = $('#disclosure-feed');
-  if (feed) feed.innerHTML = content.disclosures.length ? content.disclosures.slice(0, 3).map(item => `<a class="disclosure-row" href="${esc(disclosureHref(item))}"${fileAttrs(item)}><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span><span class="disclosure-status">${esc(item.date || '')}</span><span aria-hidden="true">↗</span></a>`).join('') : emptyDisclosures;
+  if (feed) feed.innerHTML = disclosureItems.length ? disclosureItems.slice(0, 3).map(item => `<a class="disclosure-row" href="${esc(disclosureHref(item))}"${fileAttrs(item)}><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span>${disclosureSamplesOnly ? pendingStatus : `<span class="disclosure-status">${esc(item.date || '')}</span>`}<span aria-hidden="true">↗</span></a>`).join('') : emptyDisclosures;
 
   // Network images retain the requested Unsplash URL; local copies provide a reliable fallback.
   $$('img[data-fallback]').forEach(img => {
@@ -166,14 +173,14 @@
   /* ---------- Strategy / PEF modals ---------- */
   $$('[data-strategy]').forEach(button => button.addEventListener('click', () => {
     const strategy = content.strategies.find(item => item.id === button.dataset.strategy);
-    const html = `<p>${esc(strategy.description)}</p><dl>${strategy.details.map(([title, description]) => `<dt>${esc(title)}</dt><dd>${esc(description)}</dd>`).join('')}</dl><p class="dialog-note">${esc(strategy.note)}</p>`;
+    const html = `<p>${keep(esc(strategy.description))}</p><dl>${strategy.details.map(([title, description]) => `<dt>${esc(title)}</dt><dd>${keep(esc(description))}</dd>`).join('')}</dl><p class="dialog-note">${esc(strategy.note)}</p>`;
     openDialog(`STRATEGY ${strategy.number} / ${strategy.eyebrow}`, strategy.title, html, button);
   }));
   $$('[data-pef]').forEach(button => button.addEventListener('click', () => {
     const theme = content.pefThemes.find(item => item.id === button.dataset.pef);
     const funds = theme.funds.map((fund, i) => `<article class="pef-fund"><span class="pef-fund-no">${String(i + 1).padStart(2, '0')}</span><h3>${esc(fund.name)}</h3><p>${esc(fund.business)}</p><ul class="pef-types" aria-label="펀드 형태">${fund.types.map(type => `<li>${esc(type)}</li>`).join('')}</ul></article>`).join('');
     dialog.classList.add('pef-dialog');
-    openDialog(theme.eyebrow, theme.title, `<p>${esc(theme.summary)}</p><div class="pef-funds">${funds}</div><p class="dialog-note">조성 계획 단계의 펀드 구성안이며, 실제 펀드명·투자 구조·규모는 확정되지 않았습니다.</p>`, button);
+    openDialog(theme.eyebrow, theme.title, `<p>${keep(esc(theme.summary))}</p><div class="pef-funds">${funds}</div><p class="dialog-note">조성 계획 단계의 펀드 구성안이며, 실제 펀드명·투자 구조·규모는 확정되지 않았습니다.</p>`, button);
   }));
 
   /* ---------- Filter buttons (disclosure board) ---------- */
@@ -190,10 +197,17 @@
     const normalize = text => text.toLocaleLowerCase('ko-KR').replace(/\s+/g, '');
     const renderDisclosures = () => {
       const term = normalize($('#search-input').value);
-      const rows = content.disclosures.filter(item => (disclosureFilter === 'all' || item.category === disclosureFilter) && normalize(item.title + item.label).includes(term));
-      $('#disclosure-list').innerHTML = rows.length ? rows.map(item => `<div class="disclosure-row"><span>${esc(item.label)}</span>${item.file ? `<a class="dr-title" href="${esc(item.file)}" target="_blank" rel="noopener">${esc(item.title)}</a>` : `<span class="dr-title">${esc(item.title)}</span>`}<span class="disclosure-status">${esc(item.date || '')}</span><span aria-hidden="true">↗</span></div>`).join('')
+      const rows = disclosureItems.filter(item => (disclosureFilter === 'all' || item.category === disclosureFilter) && normalize(item.title + item.label).includes(term));
+      const row = item => disclosureSamplesOnly
+        ? `<div class="disclosure-row"><span>${esc(item.label)}</span><button type="button" data-disclosure="${esc(item.category)}">${esc(item.title)}</button>${pendingStatus}<span aria-hidden="true">↗</span></div>`
+        : `<div class="disclosure-row"><span>${esc(item.label)}</span>${item.file ? `<a class="dr-title" href="${esc(item.file)}" target="_blank" rel="noopener">${esc(item.title)}</a>` : `<span class="dr-title">${esc(item.title)}</span>`}<span class="disclosure-status">${esc(item.date || '')}</span><span aria-hidden="true">↗</span></div>`;
+      $('#disclosure-list').innerHTML = rows.length ? rows.map(row).join('')
         : term ? '<div class="empty-state"><p>검색 조건에 맞는 자료가 없습니다.</p><button type="button" id="reset-search">검색 조건 초기화</button></div>' : emptyDisclosures;
-      $('#disclosure-status').textContent = `등록된 자료 ${rows.length}건`;
+      $('#disclosure-status').textContent = disclosureSamplesOnly ? `${rows.length}개 항목 · 자료 준비 중` : `등록된 자료 ${rows.length}건`;
+      $$('[data-disclosure]').forEach(button => button.addEventListener('click', () => {
+        const item = disclosureItems.find(entry => entry.category === button.dataset.disclosure);
+        openDialog(`${item.label} / 자료 준비 중`, item.title, `<p>${esc(item.description)}</p><p class="dialog-note" style="margin-top:24px">자료 준비 중입니다. 현재 등록된 공시 문서나 다운로드 파일은 없습니다.</p>`, button);
+      }));
       $('#reset-search')?.addEventListener('click', () => {
         $('#search-input').value = '';
         disclosureFilter = 'all';

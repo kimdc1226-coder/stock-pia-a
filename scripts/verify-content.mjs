@@ -219,13 +219,26 @@ assert.ok(!/portfolio-body|portfolio-filters|table-scroll/.test(appJs + read('pu
 const bars = [...fund.matchAll(/<i data-count="([\d.]+)" data-dec="1">/g)].map(m => Math.round(Number(m[1]) * 10000));
 assert.deepEqual(bars, sums, '연도별 AUM 그래프(0.6·1.0·1.6조)가 PPT 합계와 같아야 한다');
 assert.ok(/id="portfolio"/.test(fund) && content.nav.find(item => item.id === 'fund').children.some(([label, href]) => label === 'AUM 성장 목표' && href === '/fund/#portfolio'), "메뉴 'AUM 성장 목표' → /fund/#portfolio");
-// 13. 공시: 실제 자료만 등록, 없으면 '등록된 공시자료가 없습니다'
-assert.ok(!publicText.includes('구성 예시') && !publicText.includes('플레이스홀더'), '공시 예시 안내·예시 게시물이 남아 있음');
+// 13. 공시: 실제 자료(disclosures)가 없으면 준비 중 예시 3개(disclosureSamples)를 '자료 준비 중'으로 표시 (2026-11-07 요청으로 복원)
+assert.ok(!publicText.includes('구성 예시') && !publicText.includes('플레이스홀더'), "삭제한 '구성 예시' 안내 문장이 다시 들어감");
+assert.deepEqual([...content.disclosureSamples.map(item => `${item.category}|${item.label}|${item.title}`)], ['management|경영공시|영업보고서 및 결산 공고', 'fund|펀드공시|펀드 운용보고서 및 수시 공시', 'research|리서치|시장 전망 및 투자 인사이트'], '공시 준비 중 예시 3개');
+for (const item of content.disclosureSamples) assert.ok(!('date' in item) && !('file' in item), `예시에는 게시일·파일을 넣지 않는다: ${item.title}`);
+assert.ok(appJs.includes('const disclosureSamplesOnly = !content.disclosures.length;') && appJs.includes('disclosureSamplesOnly ? content.disclosureSamples || [] : content.disclosures'), '실제 자료가 등록되면 예시는 표시하지 않는다(중복 금지)');
+assert.ok(appJs.includes('<span class="disclosure-status">자료 준비 중</span>') && appJs.includes('자료 준비 중입니다. 현재 등록된 공시 문서나 다운로드 파일은 없습니다.'), "예시 행의 '자료 준비 중' 표시와 클릭 안내");
 assert.ok(appJs.includes('등록된 공시자료가 없습니다.'), '공시 빈 상태 문구');
 for (const item of content.disclosures) {
   assert.ok(['management', 'fund', 'research'].includes(item.category) && item.title && /^\d{4}-\d{2}-\d{2}$/.test(item.date || ''), `공시 항목 형식: ${item.title}`);
   if (item.file) assert.ok(fs.existsSync(path.join(pub, item.file)), `공시 첨부파일이 없음: ${item.file}`);
 }
+// 13-1. 줄바꿈: 함께 읽혀야 하는 표현만 묶고(.nb), PC용 강제 줄바꿈은 desktop-only로 모바일에서 해제
+const css = read('public/styles.css');
+assert.ok(/\.nb\{white-space:nowrap\}/.test(css) && /br\.desktop-only\{display:none\}/.test(css) && /min-width:961px\)\{br\.desktop-only\{display:inline\}/.test(css), '줄바꿈 CSS(.nb, br.desktop-only)');
+assert.ok(!/(?:^|\})\s*(?:p|main|body|li|dd)\s*\{[^}]*white-space:\s*nowrap/m.test(css), '문단 전체에 white-space: nowrap을 적용하지 않는다');
+assert.equal((contactPage.match(/<span class="nb">공동 투자\(Co-investment\)<\/span>/g) || []).length, 2, 'Contact 상단·본문의 공동 투자(Co-investment) 묶음');
+assert.ok(contactPage.includes('<br class="desktop-only"> <span class="nb">공동 투자(Co-investment)</span>') && home.includes('<br class="desktop-only"> <span class="nb">공동 투자(Co-investment)</span>'), '문의 문구의 PC용 줄바꿈은 desktop-only, Co-investment 묶음');
+assert.ok(!/프로젝트 펀드 조성,<br>/.test(contactPage + home), '문의 문구에 모바일에서도 강제되는 br이 남아 있음');
+assert.ok(pageByUrl.get('/philosophy/').html.includes('<span class="nb">검토 및 결정</span>'), "'검토 및 결정' 묶음");
+for (const phrase of ['Co-investment', '구조화 투자', 'Physical AI']) assert.ok(appJs.includes(phrase), `app.js KEEP 표현: ${phrase}`);
 // 14. 메인 사칭 금융사기 주의 팝업 (HTML 텍스트, 오늘 하루 보지 않기, CSP를 지키는 외부 스크립트로 동작)
 const notice = (home.match(/<dialog class="scam-notice"[\s\S]*?<\/dialog>/) || [])[0] || '';
 assert.ok(notice.includes('id="scam-notice"') && !/<img\b/.test(notice), '사칭 주의 팝업은 이미지가 아니라 HTML 텍스트');

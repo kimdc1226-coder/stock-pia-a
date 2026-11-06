@@ -939,3 +939,25 @@ dialog.scam-notice[open]{display:flex;flex-direction:column}
 .sn-today{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--mut);cursor:pointer}.sn-today input{width:18px;height:18px;margin:0;accent-color:var(--navy)}
 .sn-close{min-width:96px;height:44px;padding:0 22px;border-radius:10px;background:var(--navy);color:#fff;font-size:15px;font-weight:700}.sn-close:hover{background:#1e3a8a}
 @media(max-width:640px){.sn-inner{padding:26px 20px 18px}.sn-body p{font-size:14px}}
+
+/* Strategy Value-Up: 세 카드의 라벨·제목·설명 시작 높이를 공통 행(subgrid)으로 맞춘다 (설명 줄 수와 무관) */
+.value-up-grid article{display:grid;grid-row:span 3;grid-template-rows:subgrid;row-gap:0;align-content:start;min-height:0}
+.value-up-grid h4{margin:clamp(96px,11vw,168px) 0 16px}
+@media(max-width:960px){.value-up-grid h4{margin-top:30px}}
+
+/* PEF: 'Physical AI 파워 인프라' 제목을 한 줄로 — 이 테마에만 적용, 글상자 너비에 맞춘 크기 */
+#pef-ai .pc-copy{width:100%;max-width:940px;container-type:inline-size}
+/* 제목 폭 ≈ 9.25em → 글상자 폭의 10%(10cqi)면 여유 있게 한 줄. 다른 테마 제목 크기(clamp(34px,4.6vw,68px))를 넘지 않는다 */
+#pef-ai .pc-copy h3{font-size:clamp(24px,min(clamp(34px,4.6vw,68px),10cqi),68px)}
+
+/* 줄바꿈 정리 (2026-11-07): 문장 끝 단독 단어·영문 분리를 줄인다. 문단 전체 nowrap·br 일괄 삽입은 쓰지 않는다 */
+.nb{white-space:nowrap}
+br.desktop-only{display:none}
+@media(min-width:961px){br.desktop-only{display:inline}}
+/* 제목은 줄 길이를 고르게, 설명문은 마지막 줄에 짧은 단어만 남지 않게 */
+h1,h2,h3,h4,.pc-lead{text-wrap:balance}
+p,dd,li>p{text-wrap:pretty}
+/* 2~3줄짜리 짧은 카드 설명은 줄 길이를 고르게 */
+.tile p,.pf-panel p,.pef-fund p,.pc-copy p,.value-up-grid p,.timeline p,.roadmap p,.vd-row p,.hl-note,.about-points p,.phil-cards p,.step-stack p,.accordion p,.dialog-note,.og-legend,.sn-body p,.film-copy p,.section-heading>p,.page-hero p,.small{text-wrap:balance}
+/* 소개문 안의 보조 안내(.small)는 새 줄에서 시작해 줄 길이를 따로 고른다 */
+.section-heading>p>.small{display:block;text-wrap:balance}
