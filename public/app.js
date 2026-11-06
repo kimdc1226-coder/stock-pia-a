@@ -8,7 +8,6 @@
   const esc = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const br = value => esc(value).replace(/\n/g, '<br>');
   const flat = value => esc(value).replace(/\n/g, ' ');
-  const format = value => new Intl.NumberFormat('ko-KR').format(value);
   const path = location.pathname.replace(/index\.html$/, '');
   const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
   const desktop = window.matchMedia('(min-width: 961px)');
@@ -39,11 +38,11 @@
   /* ---------- Shared footer + dialog ---------- */
   const footerHost = $('#site-footer');
   if (footerHost) footerHost.outerHTML = `<footer class="site-footer"><div class="wrap">
-    <div class="ft-top">${brand}<div class="footer-links"><button type="button" data-info="privacy">개인정보처리방침</button><button type="button" data-info="terms">이용약관</button><button type="button" data-info="consumer">금융소비자보호</button><button type="button" data-info="stewardship">스튜어드십코드</button></div><a class="top-link" href="#main" aria-label="맨 위로">↑</a></div>
+    <div class="ft-top">${brand}<div class="footer-links"><button type="button" data-info="privacy">개인정보처리방침</button><button type="button" data-info="consumer">금융소비자보호</button></div><a class="top-link" href="#main" aria-label="맨 위로">↑</a></div>
     <nav class="ft-map" aria-label="사이트맵">${content.nav.map(item => `<div><a class="ft-parent" href="${item.href}">${esc(item.label)}</a>${item.children ? `<ul>${item.children.map(([label, href]) => `<li><a href="${href}">${esc(label)}</a></li>`).join('')}</ul>` : ''}</div>`).join('')}</nav>
-    <p class="business-info">그랑스톤 자산운용 <span>대표자: 김복기</span><span>법인명·사업자등록번호: 확인 필요</span><br>금융투자업 등록정보: 확인 필요 <span>준법감시인 심사필: 승인번호 및 유효기간 등록 예정</span></p>
-    <div class="investment-notice"><strong>투자유의사항 · 검토용 초안</strong><p>투자에는 원금 손실 가능성이 있습니다. 과거 실적과 목표 수익률은 미래 성과를 보장하지 않습니다. 투자 전 상품설명서 및 약관을 확인하시기 바랍니다. 본 사이트의 목표 AUM·IRR·예상 수익률은 사업계획으로, 확정된 실적이나 수익 보장을 의미하지 않습니다.</p><p>본 자료는 정보 제공 목적으로만 작성되었으며, 특정 금융 상품의 매수 또는 매도를 권유하는 문서가 아닙니다. 본 자료에 수록된 정보는 엄격한 기준에 의해 작성되었으나 그 정확성과 완전성을 보장하지 않습니다.</p></div>
-    <div class="footer-bottom"><span>© 2026 GRANDSTONE ASSET MANAGEMENT.</span><span>검토용 프로토타입 · <button type="button" data-info="credits">이미지 출처</button></span></div>
+    <p class="business-info">그랑스톤 자산운용 <span>대표자: 김복기</span><span>사업자등록번호: 374-88-02362</span><br>금융투자업 등록정보: 일반 사모집합투자업 (2022-08-29)</p>
+    <div class="investment-notice"><strong>투자유의사항</strong><p>투자에는 원금 손실 가능성이 있습니다. 과거 실적과 목표 수익률은 미래 성과를 보장하지 않습니다. 투자 전 상품설명서 및 약관을 확인하시기 바랍니다. 본 사이트의 목표 AUM·IRR·예상 수익률은 사업계획으로, 확정된 실적이나 수익 보장을 의미하지 않습니다.</p><p>본 자료는 정보 제공 목적으로만 작성되었으며, 특정 금융 상품의 매수 또는 매도를 권유하는 문서가 아닙니다. 본 자료에 수록된 정보는 엄격한 기준에 의해 작성되었으나 그 정확성과 완전성을 보장하지 않습니다.</p></div>
+    <div class="footer-bottom"><span>© 2026 GRANDSTONE ASSET MANAGEMENT.</span></div>
   </div></footer>`;
   document.body.insertAdjacentHTML('beforeend', '<dialog id="detail-dialog" aria-labelledby="dialog-title"><div class="dialog-inner"><button type="button" class="dialog-close" aria-label="닫기">×</button><p class="eyebrow" id="dialog-eyebrow"></p><h2 id="dialog-title"></h2><div id="dialog-body"></div></div></dialog>');
 
@@ -150,8 +149,12 @@
   if (tilesS) tilesS.innerHTML = content.strategies.map(s => tile(`/strategy/#strategy-${s.id}`, s.id, '자세히 보기', s.number)).join('');
   const tilesP = $('#tiles-pef');
   if (tilesP) tilesP.innerHTML = content.pefThemes.map(t => panel(`/fund/#pef-${t.id}`, t.id, '자세히 보기', t.number)).join('');
+  // Disclosures: only real, approved documents go into content.disclosures ({ category, label, title, date, file }).
+  const emptyDisclosures = '<div class="empty-state"><p>등록된 공시자료가 없습니다.</p></div>';
+  const disclosureHref = item => item.file || `/disclosure/#${item.category}`;
+  const fileAttrs = item => item.file ? ' target="_blank" rel="noopener"' : '';
   const feed = $('#disclosure-feed');
-  if (feed) feed.innerHTML = content.disclosures.map(item => `<a class="disclosure-row" href="/disclosure/#${esc(item.category)}"><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span><span class="disclosure-status">자료 준비 중</span><span aria-hidden="true">↗</span></a>`).join('');
+  if (feed) feed.innerHTML = content.disclosures.length ? content.disclosures.slice(0, 3).map(item => `<a class="disclosure-row" href="${esc(disclosureHref(item))}"${fileAttrs(item)}><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span><span class="disclosure-status">${esc(item.date || '')}</span><span aria-hidden="true">↗</span></a>`).join('') : emptyDisclosures;
 
   // Network images retain the requested Unsplash URL; local copies provide a reliable fallback.
   $$('img[data-fallback]').forEach(img => {
@@ -173,28 +176,12 @@
     openDialog(theme.eyebrow, theme.title, `<p>${esc(theme.summary)}</p><div class="pef-funds">${funds}</div><p class="dialog-note">조성 계획 단계의 펀드 구성안이며, 실제 펀드명·투자 구조·규모는 확정되지 않았습니다.</p>`, button);
   }));
 
-  /* ---------- Portfolio table + filter ---------- */
+  /* ---------- Filter buttons (disclosure board) ---------- */
   const activateFilter = (group, selected) => $$('button[data-filter]', group).forEach(button => {
     const active = button === selected;
     button.classList.toggle('active', active);
     button.setAttribute('aria-pressed', String(active));
   });
-  if ($('#portfolio-body')) {
-    let portfolioFilter = 'all';
-    const renderPortfolio = () => {
-      const items = content.portfolio.filter(row => portfolioFilter === 'all' || row.category === portfolioFilter);
-      $('#portfolio-body').innerHTML = items.map(row => `<tr><td>${esc(row.name)}<small>${esc(row.detail)}</small></td>${row.aum.map(number => `<td class="number">${format(number)}</td>`).join('')}<td class="number">${esc(row.irr)}</td></tr>`).join('');
-      const sums = [0, 1, 2].map(index => items.reduce((total, row) => total + row.aum[index], 0));
-      $('#portfolio-total').innerHTML = `<tr><td>${portfolioFilter === 'all' ? '자산군 계획 합계' : '선택 자산군 합계'}</td>${sums.map(sum => `<td class="number">${format(sum)}</td>`).join('')}<td class="number">—</td></tr>`;
-      $('#portfolio-status').textContent = `${items.length}개 자산군 표시. 2027년 ${format(sums[0])}억, 2028년 ${format(sums[1])}억, 2029년 ${format(sums[2])}억 원 목표.`;
-    };
-    $$('#portfolio-filters button').forEach(button => button.addEventListener('click', () => {
-      portfolioFilter = button.dataset.filter;
-      activateFilter($('#portfolio-filters'), button);
-      renderPortfolio();
-    }));
-    renderPortfolio();
-  }
 
   /* ---------- Disclosure board ---------- */
   let applyDisclosureHash = () => {};
@@ -204,12 +191,9 @@
     const renderDisclosures = () => {
       const term = normalize($('#search-input').value);
       const rows = content.disclosures.filter(item => (disclosureFilter === 'all' || item.category === disclosureFilter) && normalize(item.title + item.label).includes(term));
-      $('#disclosure-list').innerHTML = rows.length ? rows.map(item => `<div class="disclosure-row"><span>${esc(item.label)}</span><button type="button" data-disclosure="${esc(item.category)}">${esc(item.title)}</button><span class="disclosure-status">자료 준비 중</span><span aria-hidden="true">↗</span></div>`).join('') : '<div class="empty-state"><p>검색 조건에 맞는 자료가 없습니다.</p><button type="button" id="reset-search">검색 조건 초기화</button></div>';
-      $('#disclosure-status').textContent = `${rows.length}개 구성 예시 · 실제 게시일 및 첨부파일은 자료 수급 후 등록됩니다.`;
-      $$('[data-disclosure]').forEach(button => button.addEventListener('click', () => {
-        const item = content.disclosures.find(row => row.category === button.dataset.disclosure);
-        openDialog(`${item.label} / CONTENT PENDING`, item.title, `<p>${esc(item.description)}</p><p class="dialog-note" style="margin-top:24px">이 항목은 공시 정보 구조를 보여주는 플레이스홀더입니다. 현재 등록된 공시 문서나 다운로드 파일은 없습니다.</p>`, button);
-      }));
+      $('#disclosure-list').innerHTML = rows.length ? rows.map(item => `<div class="disclosure-row"><span>${esc(item.label)}</span>${item.file ? `<a class="dr-title" href="${esc(item.file)}" target="_blank" rel="noopener">${esc(item.title)}</a>` : `<span class="dr-title">${esc(item.title)}</span>`}<span class="disclosure-status">${esc(item.date || '')}</span><span aria-hidden="true">↗</span></div>`).join('')
+        : term ? '<div class="empty-state"><p>검색 조건에 맞는 자료가 없습니다.</p><button type="button" id="reset-search">검색 조건 초기화</button></div>' : emptyDisclosures;
+      $('#disclosure-status').textContent = `등록된 자료 ${rows.length}건`;
       $('#reset-search')?.addEventListener('click', () => {
         $('#search-input').value = '';
         disclosureFilter = 'all';
@@ -241,18 +225,40 @@
   /* ---------- Footer / contact info dialogs ---------- */
   const info = {
     privacy: ['개인정보처리방침', '개인정보처리방침은 고객사 확인 후 게시할 예정입니다. 이 프로토타입에는 개인정보 입력·전송 폼, 쿠키 분석 도구, 회원 기능이 없습니다. 외부 폰트와 Unsplash 이미지 요청은 발생할 수 있습니다. 운영 시 개인정보 처리 목적, 항목, 보유기간, 위탁·제3자 제공 여부, 이용자 권리, 보호책임자와 시행일을 확정해야 합니다.'],
-    terms: ['이용약관', '고객사의 승인된 서비스 이용약관이 준비되면 이 위치에 전문과 시행일을 게시합니다. 현재 문구는 약관이 아닌 준비 상태 안내입니다.'],
     consumer: ['금융소비자보호', '금융소비자보호 기준, 민원 접수 채널과 담당자 정보는 확인 후 게시할 예정입니다. 금융투자업 등록 형태와 판매 구조에 맞는 최종 안내가 필요합니다.'],
-    stewardship: ['스튜어드십코드', '스튜어드십코드 참여 여부와 수탁자 책임정책은 자료 수급 후 확정합니다. 현재 참여 또는 이행 실적을 표시하지 않습니다.'],
-    contact: ['투자·제휴 문의 안내', 'LP 출자, 프로젝트 펀드, 공동 투자 및 매각 자문 문의는 아래 연락처로 전화하시거나 이메일을 보내 주시기 바랍니다. 이 사이트에는 문의 내용을 전송하거나 저장하는 기능이 없습니다.'],
-    credits: ['이미지 출처', '히어로·비전·철학·Contact 배경 영상과 일부 건축 이미지는 Pexels(K, ArtHouse Studio) 무료 영상·사진이며, 그 외 건축·ESG 인프라 이미지는 Unsplash 사진을 사용한 디자인 시안입니다. 실제 회사 사옥 또는 투자자산 사진이 아닙니다. 대표이사와 운용진 사진은 고객사 수급 대기 상태입니다.']
+    contact: ['투자·제휴 문의 안내', 'LP 출자, 프로젝트 펀드, 공동 투자 및 매각 자문 문의는 아래 대표전화로 연락해 주시기 바랍니다. 이 사이트에는 문의 내용을 전송하거나 저장하는 기능이 없습니다.']
   };
-  const contactLinks = '<ul><li><a href="tel:0234541202">대표전화 02-3454-1202</a></li><li><a href="tel:01077445547">대표이사 직통 010-7744-5547</a></li><li><a href="mailto:kbk3333@gmail.com">kbk3333@gmail.com</a></li><li>서울시 강남구 테헤란로 27길 8, 엠타워 13층</li></ul>';
-  const creditLinks = '<ul><li><a href="https://images.unsplash.com/photo-1486406146926-c627a92ad1ab" target="_blank" rel="noopener noreferrer">건축 사진 / Unsplash 원본</a></li><li><a href="https://images.unsplash.com/photo-1473341304170-971dccb5ac1e" target="_blank" rel="noopener noreferrer">에너지 인프라 사진 / Unsplash 원본</a></li><li><a href="https://www.pexels.com/video/building-with-exterior-glass-panels-2406631/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2406631</a></li><li><a href="https://www.pexels.com/video/aerial-view-of-buildings-2254324/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2254324</a></li><li><a href="https://www.pexels.com/video/drone-footage-of-buildings-4514373/" target="_blank" rel="noopener noreferrer">Pexels 영상 / ArtHouse Studio · 4514373</a></li><li><a href="https://www.pexels.com/video/high-rise-building-with-glass-panels-2256178/" target="_blank" rel="noopener noreferrer">Pexels 영상 / K · 2256178</a></li><li><a href="https://www.pexels.com/license/" target="_blank" rel="noopener noreferrer">Pexels License</a></li><li><a href="https://unsplash.com/license" target="_blank" rel="noopener noreferrer">Unsplash License</a></li></ul>';
+  const contactLinks = '<ul><li><a href="tel:0234541201">대표전화 02-3454-1201</a></li><li>서울시 강남구 테헤란로 27길 8, 엠타워 13층</li></ul>';
   $$('[data-info]').forEach(button => button.addEventListener('click', () => {
     const [title, description] = info[button.dataset.info];
-    openDialog('GRANDSTONE / INFORMATION', title, `<p>${esc(description)}</p>${button.dataset.info === 'credits' ? creditLinks : button.dataset.info === 'contact' ? contactLinks : ''}`, button);
+    openDialog('GRANDSTONE / INFORMATION', title, `<p>${esc(description)}</p>${button.dataset.info === 'contact' ? contactLinks : ''}`, button);
   }));
+
+  /* ---------- Home: impersonation-fraud notice (hidden for the rest of the KST day when chosen) ---------- */
+  const scamNotice = $('#scam-notice');
+  if (scamNotice && typeof scamNotice.showModal === 'function') {
+    const hideKey = 'gs-scam-notice-hidden-date';
+    const today = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
+    const store = {
+      get: () => { try { return window.localStorage.getItem(hideKey); } catch { return null; } },
+      set: value => { try { window.localStorage.setItem(hideKey, value); } catch { /* storage blocked: show again next visit */ } }
+    };
+    const todayBox = $('#scam-notice-today');
+    $('#scam-notice-close').addEventListener('click', () => scamNotice.close());
+    scamNotice.addEventListener('close', () => {
+      if (todayBox.checked) store.set(today());
+      if (!dialog.open) document.body.classList.remove('modal-open');
+    });
+    if (store.get() !== today()) {
+      // showModal()의 자동 포커스와 닫기 버튼 포커스가 내부를 아래로 스크롤하지 않도록, 포커스 후 제목이 보이게 맨 위로 맞춘다
+      const noticeInner = scamNotice.querySelector('.sn-inner');
+      scamNotice.showModal();
+      document.body.classList.add('modal-open');
+      $('#scam-notice-close').focus({ preventScroll: true });
+      noticeInner.scrollTop = 0;
+      requestAnimationFrame(() => { noticeInner.scrollTop = 0; });
+    }
+  }
 
   /* ---------- In-page sub navigation (same data as the header) ---------- */
   const subnav = $('[data-subnav]');

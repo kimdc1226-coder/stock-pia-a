@@ -7,9 +7,45 @@
 - **공식 사명:** 한글 `그랑스톤 자산운용`('그랑스톤'은 의도한 공식 발음), 영문 브랜드명 `GRANDSTONE`(붙여쓰기), 영문 전체명 `GRANDSTONE ASSET MANAGEMENT`. 로고·명함과 같은 표기이며, 화면 텍스트와 메타데이터(`og:site_name`, 푸터 카피라이트, 팝업 상단 등)도 이에 맞춰져 있습니다.
 - **회사 로고(확정):** 금색 3단 막대 심볼 + 남색 `GRANDSTONE ASSET MANAGEMENT` 워드마크(투명 배경). 헤더·푸터·파비콘·공유 이미지(OG)에 같은 브랜드로 적용되어 있습니다. 어두운 푸터에서는 남색 글자가 묻히므로 로고는 그대로 두고 흰 바탕판을 깝니다. 로고 파일은 `public/assets/`의 `logo-grandstone.png`, `logo-grandstone-sm.png`, 파비콘 `favicon-32.png`·`favicon-192.png`·`apple-touch-icon.png`·`favicon.ico`, OG `og-image-grandstone.png`입니다(원본·후보 파일은 공개 폴더에 두지 않음). 이미지는 1년 캐시되므로 로고를 바꿀 때는 같은 이름으로 덮어쓰지 말고 새 파일명을 쓰세요.
 - **영문 표기(확정):** 띄어쓴 `GRAND STONE`은 쓰지 않습니다. 저장소명·Worker 이름·폴더명·도메인 등 내부 식별자는 옛 이름을 유지합니다(바꾸면 자동 배포가 끊길 수 있음).
-- **반영된 콘텐츠:** 한글 사명 통일, AI 파워 인프라 테마의 `Physical AI Tech 펀드`(RCPS·Equity·Mezzanine), 회사소개 조직도(이사회 → 대표이사 → 2개 본부 → 4개 부문 + 독립·보조 조직), 대표이사와 연락처(Contact·문의 팝업).
-- **여전히 미확정인 정보:** 법인명, 사업자등록번호, 금융투자업 등록정보, 준법감시인 심사필, 대표이사 경력·사진, 다른 경영진의 성명·경력.
+- **반영된 콘텐츠:** 한글 사명 통일, Physical AI 파워 인프라 테마의 `Physical AI Tech 펀드`(RCPS·Equity·Mezzanine), 회사소개 조직도(이사회 → 대표이사 → 2개 본부 → 4개 부문 + 독립·보조 조직), 대표이사와 연락처(Contact·문의 팝업). 2026-11-06 추가 수정 내용은 아래 절 참고(로컬, 미배포).
+- **여전히 미확정인 정보:** 공시자료, 개인정보처리방침·금융소비자보호 문서, 대표이사 사진.
 - 이 저장소에 로컬로만 있는 작업은 [HANDOFF.md](HANDOFF.md)(로컬 전용 인수인계 문서)에 정리합니다. 아래 일부 설명(단일 `index.html` 기준 수정 위치, Netlify 절차 등)은 예전 구조 기준이므로 최신 구조는 HANDOFF.md를 따르세요.
+
+## 2026-11-06 추가 수정 — 로컬 수정 상태 · 검토 대기 · 미배포
+
+수정요청서 `홈페이지 수정내역(추가수정내역).pptx`(35장, 공개 폴더 밖 로컬 보관) 기준. **커밋·푸시·배포하지 않았습니다.**
+
+- 메인 첫 화면: 화면 높이(svh)를 함께 고려해 슬로건·여백을 조정, 브라우저 100%에서 1366×768·1440×900·1920×1080 모두 한 화면에 표시(zoom/scale 미사용)
+- 메인 핵심 지표: '목표는 실적과 다릅니다.' 삭제, '4가지' 옆 4대 전략 목록 추가, 2029 AUM 아래 '달성 목표'
+- 핵심 가치 '동반 성장' 영문: Partnership → **Accompany** (메인 그림·목록, 회사소개)
+- 공시: '구성 예시' 안내와 예시 게시물 삭제, 실제 자료가 없으면 '등록된 공시자료가 없습니다' 표시(분류·검색 유지). 실제 자료는 `public/data/site-content.js`의 `disclosures`에 등록
+- 푸터: 정책 메뉴는 개인정보처리방침·금융소비자보호 2개(준비 안내 유지), 사업자등록번호·금융투자업 등록정보 반영, 준법감시인 심사필 항목 삭제, '검토용 초안'·'검토용 프로토타입'·이미지 출처 버튼/팝업 삭제
+- 메인 진입 시 '당사 사칭 금융사기 주의 안내' 팝업(HTML 텍스트, 오늘 하루 보지 않기 = 한국시간 당일 숨김)
+- 회사소개: 연혁의 설립 등록 문구·확인 안내 삭제, 경영진 카드 → **CEO 인사말**(대표이사 사진은 준비 영역, `/about/#leadership` 주소 유지)
+- 투자철학 '독립 리스크팀의' 삭제, 운용전략 '배당수익률: 연 6~8% 수준.', Value-Up '글로벌 대체투자 확대'
+- PEF: AI 테마를 **Physical AI 파워 인프라**(Physical AI & POWER INFRASTRUCTURE)로 변경(테마 id·`/fund/#pef-ai` 유지), 자산군별 예상 포트폴리오 표·필터·'자료 준비 중' 카드 삭제(연도별 AUM 그래프 유지, 메뉴 'AUM 성장 목표')
+- Contact: 문의 이메일·대표이사 직통 삭제, 대표전화 02-3454-1201
+- 검사: `npm run check`(내용), `npm run check:browser`(Chrome/Edge 헤드리스: 팝업 동작·모바일 최초 표시 위치, 첫 화면 높이, 전 페이지 콘솔·CSP·가로 넘침)
+
+### 실행 환경 (패키지 설치 불필요)
+
+| 명령 | 필요 조건 |
+|---|---|
+| `npm run dev` (로컬 서버) | Node.js 18 이상 (기존과 동일) |
+| `npm run check` (내용·링크·정적 검사) | Node.js 18 이상 (기존과 동일) |
+| `npm run check:browser` (브라우저 동작 검사) | **Node.js 22 이상** + **Chrome 또는 Edge** 설치. 다른 위치에 설치했다면 `CHROME_PATH`로 실행 파일 경로 지정. 스크린샷이 필요하면 `node scripts/verify-browser.mjs <public 밖 폴더>` |
+
+Node.js 22 미만에서 `npm run check:browser`를 실행하면 필요한 버전을 안내하고 종료합니다. 사이트 실행과 `npm run check`에는 영향이 없습니다.
+
+**수급 대기:** 공시자료(추후 제공), 개인정보처리방침·금융소비자보호 PDF(확인 후 제공), 대표이사 사진.
+
+### 미디어 출처 기록 (화면의 이미지 출처 팝업 삭제 후 내부 보관)
+
+화면에서 출처 안내를 뺐다고 저작권 표시 의무가 없다고 단정하지 않습니다. 라이선스 조건은 아래 원본에서 다시 확인하세요.
+
+- 배경 영상·일부 건축 이미지: Pexels — K [2406631](https://www.pexels.com/video/building-with-exterior-glass-panels-2406631/), [2254324](https://www.pexels.com/video/aerial-view-of-buildings-2254324/), [2256178](https://www.pexels.com/video/high-rise-building-with-glass-panels-2256178/), ArtHouse Studio [4514373](https://www.pexels.com/video/drone-footage-of-buildings-4514373/) · [Pexels License](https://www.pexels.com/license/)
+- 건축·ESG 이미지: Unsplash [photo-1486406146926-c627a92ad1ab](https://images.unsplash.com/photo-1486406146926-c627a92ad1ab), [photo-1473341304170-971dccb5ac1e](https://images.unsplash.com/photo-1473341304170-971dccb5ac1e) · [Unsplash License](https://unsplash.com/license)
+- PEF 테마 이미지 `pef-ai.jpg`, `pef-energy.jpg`, `pef-green.jpg`(Pexels 사진 3장): 원본 주소 미기록 — 확인 필요
 
 ## 배포 구조 (보안)
 

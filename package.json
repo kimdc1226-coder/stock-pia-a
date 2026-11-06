@@ -5,7 +5,8 @@
   "description": "STOCK PIA asset management static website prototype",
   "scripts": {
     "dev": "node scripts/server.mjs",
-    "check": "node --check public/app.js && node --check public/fx.js && node --check public/data/site-content.js && node scripts/verify-content.mjs && node scripts/verify-no-ppt-citations.mjs"
+    "check": "node --check public/app.js && node --check public/fx.js && node --check public/data/site-content.js && node scripts/verify-content.mjs && node scripts/verify-no-ppt-citations.mjs",
+    "check:browser": "node scripts/verify-browser.mjs"
   },
   "engines": { "node": ">=18" }
 }
