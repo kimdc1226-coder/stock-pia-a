@@ -3,7 +3,9 @@
   "name": "stock-pia",
   "compatibility_date": "2026-10-01",
   "assets": {
-    "directory": "./public"
+    "directory": "./public",
+    // 없는 주소는 가장 가까운 404.html(현재 public/404.html)을 HTTP 404 상태로 제공 (설정이 없으면 빈 404 응답)
+    "not_found_handling": "404-page"
   },
   // 옛 이름이 주소에 노출되는 기본 주소(stock-pia.kimdc1226.workers.dev)를 끈다. 사이트는 커스텀 도메인(www.grandstone-am.com)으로만 접속.
   "workers_dev": false,

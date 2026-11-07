@@ -2,15 +2,19 @@
 // - public/_headers의 CSP를 그대로 붙여 서빙해 CSP 위반도 콘솔 오류로 잡는다.
 // - 메인 첫 화면이 브라우저 100%에서 한 화면에 들어오는지(1366×768, 1440×900, 1920×1080)
 // - 사칭 금융사기 주의 팝업: 최초 표시, 닫기, 오늘 하루 숨김, 다음 날 재표시, 저장소 차단 시에도 정상 동작
-// - 모든 페이지 × PC·태블릿·모바일: 콘솔 오류·CSP 차단·깨진 이미지·가로 넘침
+// - 모든 페이지 × PC·태블릿·모바일: 콘솔 오류·CSP 차단·깨진 이미지·가로 넘침, 외부 요청은 Google Fonts뿐
+// - 없는 주소: 커스텀 404 페이지를 HTTP 404로 제공(운영 not_found_handling "404-page"와 같은 규칙), 버튼·메뉴 이동
+// - 잘못된 해시(#% 등)에서도 스크립트 오류 없이 메뉴·이후 앵커·공시 분류 정상, 정상 해시·동적 카드 앵커 유지
 // 사용: node scripts/verify-browser.mjs [스크린샷 저장 폴더(선택, public/ 밖)]
 import http from 'node:http';
+import net from 'node:net';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { notFoundFile, requestPath } from './not-found.mjs';
 
 // 이 검사만 Node.js 22 이상이 필요하다(내장 WebSocket·fetch 사용). npm run dev / npm run check는 기존 조건(Node 18+) 그대로.
 const nodeMajor = Number(process.versions.node.split('.')[0]);
@@ -29,8 +33,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const csp = fs.readFileSync(path.join(pub, '_headers'), 'utf8').match(/Content-Security-Policy:\s*(.+)/)[1].replace(/;\s*upgrade-insecure-requests/, '').trim();
 const mime = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.ico': 'image/x-icon', '.mp4': 'video/mp4', '.pdf': 'application/pdf' };
 const server = http.createServer((req, res) => {
+  // 주소 자체를 해석할 수 없으면(예: //[) 400. catch 안에서 다시 해석하지 않도록 한 번만 해석한다.
+  const rawPath = requestPath(req.url);
+  if (rawPath === null) { res.writeHead(400, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Security-Policy': csp }); res.end('Bad Request'); return; }
   try {
-    const p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+    const p = decodeURIComponent(rawPath);
     let file = path.resolve(pub, '.' + p);
     if (!file.startsWith(pub)) throw 0;
     if (fs.statSync(file).isDirectory()) file = path.join(file, 'index.html');
@@ -39,7 +46,16 @@ const server = http.createServer((req, res) => {
     const range = req.headers.range && /bytes=(\d+)-(\d*)/.exec(req.headers.range);
     if (range) { const s = +range[1], e = range[2] ? +range[2] : body.length - 1; res.writeHead(206, { ...headers, 'Content-Range': `bytes ${s}-${e}/${body.length}`, 'Content-Length': e - s + 1 }); res.end(body.subarray(s, e + 1)); return; }
     res.writeHead(200, headers); res.end(body);
-  } catch { res.writeHead(404, { 'Content-Security-Policy': csp }); res.end('Not found'); }
+  } catch {
+    // 없는 주소: 운영(wrangler.jsonc not_found_handling: "404-page")과 같이 가장 가까운 404.html을 404 상태로 제공
+    let p = rawPath; try { p = decodeURIComponent(rawPath); } catch { /* 잘못된 퍼센트 인코딩: 원래 경로로 찾음 */ }
+    try {
+      const page = notFoundFile(pub, p);
+      const body = page ? fs.readFileSync(page) : 'Not found';
+      res.writeHead(404, { 'Content-Type': page ? mime['.html'] : 'text/plain; charset=utf-8', 'Cache-Control': 'no-store', 'Content-Security-Policy': csp });
+      res.end(body);
+    } catch { if (!res.headersSent) res.writeHead(500); res.end(); } // 404 처리 중 오류도 서버를 끄지 않는다
+  }
 });
 await new Promise(r => server.listen(0, '127.0.0.1', r));
 const base = `http://127.0.0.1:${server.address().port}`;
@@ -64,7 +80,10 @@ listeners.add(m => {
   if (m.method === 'Runtime.consoleAPICalled' && m.params.type === 'error') issues.push(m.params.args.map(a => a.value ?? a.description).join(' '));
   if (m.method === 'Log.entryAdded' && m.params.entry.level === 'error' && !/fonts\.(googleapis|gstatic)\.com|ERR_ABORTED/.test(m.params.entry.text + (m.params.entry.url || ''))) issues.push(m.params.entry.text + ' ' + (m.params.entry.url || ''));
 });
-for (const d of ['Page', 'Runtime', 'Log']) await send(`${d}.enable`);
+// 실제로 요청한 외부 주소(사이트 밖)를 모은다: 개인정보처리방침 준비 안내의 설명과 맞는지 확인
+const externalOrigins = new Set();
+listeners.add(m => { if (m.method === 'Network.requestWillBeSent') { const u = m.params.request.url; if (/^https?:/.test(u) && !u.startsWith(base)) externalOrigins.add(new URL(u).origin); } });
+for (const d of ['Page', 'Runtime', 'Log', 'Network']) await send(`${d}.enable`);
 const js = async expr => { const r = await send('Runtime.evaluate', { expression: expr, awaitPromise: true, returnByValue: true }); if (r.exceptionDetails) throw new Error(r.exceptionDetails.exception?.description || r.exceptionDetails.text); return r.result.value; };
 let initScript;
 const open = async (url, { width = 1440, height = 900, mobile = false, init = '', settle = 700, reduced = true } = {}) => {
@@ -72,6 +91,8 @@ const open = async (url, { width = 1440, height = 900, mobile = false, init = ''
   await send('Emulation.setEmulatedMedia', { features: [{ name: 'prefers-reduced-motion', value: reduced ? 'reduce' : 'no-preference' }] });
   if (initScript) await send('Page.removeScriptToEvaluateOnNewDocument', { identifier: initScript });
   initScript = (await send('Page.addScriptToEvaluateOnNewDocument', { source: init })).identifier;
+  // 같은 문서에서 해시만 바뀌면 새로 읽지 않으므로, 해시 주소는 빈 페이지를 거쳐 항상 새로 연다
+  if (url.includes('#')) { const blank = new Promise(r => { const fn = m => { if (m.method === 'Page.loadEventFired') { listeners.delete(fn); r(); } }; listeners.add(fn); }); await send('Page.navigate', { url: 'about:blank' }); await Promise.race([blank, sleep(3000)]); }
   issues = [];
   const loaded = new Promise(r => { const fn = m => { if (m.method === 'Page.loadEventFired') { listeners.delete(fn); r(); } }; listeners.add(fn); });
   await send('Page.navigate', { url: base + url });
@@ -88,6 +109,34 @@ const kstToday = `new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Seoul',year:'n
 const hideToday = `try{localStorage.setItem('${KEY}', ${kstToday})}catch(e){}`;
 
 try {
+  /* ---------- 0. 서버 견고성: 해석할 수 없는 URL(예: //[) → 400, 서버는 계속 동작 (실제 HTTP 요청) ---------- */
+  // fetch는 이런 주소를 보내기 전에 거부하므로 요청 라인을 직접 보낸다
+  const rawStatus = (port, target) => new Promise(resolve => {
+    const sock = net.connect(port, '127.0.0.1', () => sock.write(`GET ${target} HTTP/1.1\r\nHost: 127.0.0.1\r\nConnection: close\r\n\r\n`));
+    let data = ''; const done = v => { sock.destroy(); resolve(v); };
+    sock.on('data', c => { data += c; }); sock.on('end', () => done(Number((/^HTTP\/1\.1 (\d{3})/.exec(data) || [])[1]) || `응답 없음(${data.slice(0, 40)})`));
+    sock.on('error', e => done(`연결 오류 ${e.code}`)); setTimeout(() => done('시간 초과'), 4000);
+  });
+  const statusOf = async (origin, url) => { try { const r = await fetch(origin + url); const body = await r.text(); return { status: r.status, notFoundPage: body.includes('<body data-page="404">') }; } catch (e) { return { status: `연결 오류 ${e.cause?.code || e.message}` }; } };
+  const badUrls = ['//[', '//[::1', 'http://[/', '//%zz', '//x:99999/'];
+  const robust = async (label, origin, port, alive) => {
+    for (const target of badUrls) {
+      const st = await rawStatus(port, target); await sleep(150);
+      const after = { home: await statusOf(origin, '/'), about: await statusOf(origin, '/about/'), missing: await statusOf(origin, '/no-such-page'), alive: alive() };
+      ok(st === 400 && after.alive && after.home.status === 200 && after.about.status === 200 && after.missing.status === 404 && after.missing.notFoundPage,
+        `${label}: 비정상 요청 ${JSON.stringify(target)} → 400, 이후 /·/about/ 200, 없는 주소 404 화면 유지`, { status: st, ...after });
+    }
+  };
+  await robust('검사 서버', base, server.address().port, () => server.listening);
+  // npm run dev 서버(scripts/server.mjs)를 실제로 띄워 같은 요청을 보낸다
+  const devPort = 4400 + Math.floor(Math.random() * 400);
+  const dev = spawn(process.execPath, [path.join(root, 'scripts', 'server.mjs')], { env: { ...process.env, PORT: String(devPort) }, stdio: ['ignore', 'pipe', 'pipe'] });
+  let devExit = null, devErr = ''; dev.on('exit', code => { devExit = code; }); dev.stderr.on('data', d => { devErr += d; });
+  await new Promise(r => { dev.stdout.once('data', r); setTimeout(r, 3000); });
+  try { await robust('npm run dev 서버', `http://127.0.0.1:${devPort}`, devPort, () => devExit === null); }
+  finally { dev.kill(); }
+  ok(!/Invalid URL|Uncaught|TypeError/.test(devErr), 'npm run dev 서버: 비정상 요청으로 오류가 새어 나오지 않음', devErr.slice(0, 200));
+
   /* ---------- 1. 사칭 주의 팝업 ---------- */
   await send('Storage.clearDataForOrigin', { origin: base, storageTypes: 'local_storage' });
   await open('/', { init: '' });
@@ -170,6 +219,7 @@ try {
       ok(st.sw <= st.cw && st.broken.length === 0 && issues.length === 0, `${url} ${w}×${h}: 가로 넘침·깨진 이미지·콘솔 오류·CSP 차단 없음`, st.sw > st.cw || st.broken.length || issues.length ? { scrollWidth: st.sw, clientWidth: st.cw, broken: st.broken, issues } : undefined);
     }
   }
+  ok([...externalOrigins].every(o => ['https://fonts.googleapis.com', 'https://fonts.gstatic.com'].includes(o)), '모든 페이지: 외부 요청은 Google Fonts(글꼴)뿐, 이미지·영상·스크립트는 사이트 내부', [...externalOrigins]);
   // 줄바꿈: 함께 읽혀야 하는 표현(.nb)이 갈라지지 않고, 주요 설명문 끝에 짧은 단어 하나만 남지 않는다
   const wrapProbe = `(sel=>{const out={split:[],orphan:[]};
     for(const nb of document.querySelectorAll(sel.split(',').map(x=>x.trim()+' .nb').join(','))){const r=document.createRange();r.selectNodeContents(nb);if(new Set([...r.getClientRects()].filter(x=>x.width>0).map(x=>Math.round(x.top/4))).size>1)out.split.push(nb.textContent)}
@@ -224,6 +274,67 @@ try {
     const ai = await js(`(()=>{const t=document.getElementById('pc-ai'),r=document.createRange();r.selectNodeContents(t);const lines=new Set([...r.getClientRects()].map(x=>Math.round(x.top))).size;const box=t.closest('.pc-hero').getBoundingClientRect(),tb=t.getBoundingClientRect();
       const other=parseFloat(getComputedStyle(document.getElementById('pc-energy')).fontSize);return {text:t.textContent,lines,fontSize:parseFloat(getComputedStyle(t).fontSize),other,inside:tb.left>=box.left&&tb.right<=box.right,overflow:t.scrollWidth>t.clientWidth,ellipsis:getComputedStyle(t).textOverflow}})()`);
     ok(ai.text === 'Physical AI 파워 인프라' && ai.lines === 1 && ai.inside && !ai.overflow && ai.ellipsis !== 'ellipsis' && ai.fontSize <= ai.other && ai.fontSize >= 24, `Physical AI 제목 ${w}×${h}: 한 줄 표시, 잘림·넘침 없음 (${ai.fontSize.toFixed(1)}px, 다른 테마 ${ai.other.toFixed(1)}px)`, ai);
+  }
+
+  /* ---------- 4. 없는 주소: 커스텀 404 페이지 (Cloudflare not_found_handling "404-page"와 같은 동작) ---------- */
+  const isNotFoundPage = body => body.includes('<body data-page="404">') && body.includes('페이지를 찾을 수 없습니다.');
+  for (const url of ['/no-such-page', '/about/no-such', '/a/b/c/', '/disclosure/old/report.pdf', '/assets/no-such.png']) {
+    const r = await fetch(base + url); const body = await r.text();
+    ok(r.status === 404 && /text\/html/.test(r.headers.get('content-type') || '') && isNotFoundPage(body) && r.headers.get('content-security-policy') === csp, `404 HTTP ${url}: 상태 404 + 커스텀 404 페이지 + CSP 헤더`, { status: r.status, type: r.headers.get('content-type'), page: isNotFoundPage(body) });
+  }
+  for (const url of ['/', '/about/', '/disclosure/', '/404.html', '/styles.css', '/app.js', '/assets/logo-grandstone-sm.png', '/assets/og-image-grandstone.png']) {
+    const r = await fetch(base + url); await r.arrayBuffer();
+    ok(r.status === 200, `기존 경로 ${url}: 200 유지`, r.status);
+  }
+  // 문서 자체의 404 응답 로그만 제외하고 나머지 콘솔 오류·CSP 차단은 그대로 잡는다
+  const pageIssues = url => issues.filter(t => !(t.includes('status of 404') && t.includes(base + url)));
+  for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true], [320, 640, true]]) {
+    for (const url of ['/no-such-page', '/about/deep/missing']) {
+      await open(url, { width: w, height: h, mobile, init: hideToday });
+      const nf = await js(`(()=>{const a=[...document.querySelectorAll('.not-found .hero-actions a')].map(x=>[x.textContent.trim(),x.getAttribute('href')]);
+        return {h1:document.querySelector('h1')?.textContent,a,current:document.querySelectorAll('.site-header [aria-current]').length,header:!!document.querySelector('.site-header'),footer:!!document.querySelector('.site-footer'),nav:document.querySelectorAll('.gnb a').length,
+          sw:document.documentElement.scrollWidth,cw:document.documentElement.clientWidth,broken:[...document.images].filter(i=>i.complete&&!i.naturalWidth).map(i=>i.src)}})()`);
+      const errs = pageIssues(url);
+      ok(nf.h1 === '페이지를 찾을 수 없습니다.' && nf.a[0]?.[1] === '/' && nf.a[0][0].startsWith('홈으로 이동') && nf.a[1]?.[1] === '/contact/' && nf.a[1][0].startsWith('Contact') && nf.current === 0 && nf.header && nf.footer && nf.nav > 10 && nf.sw <= nf.cw && !nf.broken.length && !errs.length,
+        `404 화면 ${url} ${w}×${h}: 안내·홈/Contact 버튼·메뉴(현재 메뉴 표시 없음)·푸터 표시, 가로 넘침·깨진 이미지·콘솔 오류 없음`, { ...nf, errs });
+      if (url === '/about/deep/missing') await shot(`404-${w}x${h}`);
+    }
+    // 버튼·메뉴 실제 이동
+    for (const [sel, dest] of [['.not-found .button-primary', '/'], ['.not-found .button-glass', '/contact/']]) {
+      await open('/about/deep/missing', { width: w, height: h, mobile, init: hideToday });
+      await js(`document.querySelector('${sel}')?.click()`); await sleep(900);
+      ok(await js('location.pathname') === dest, `404 화면 ${w}×${h}: '${dest === '/' ? '홈으로 이동' : 'Contact'}' 버튼 → ${dest}`);
+    }
+    await open('/no-such-page', { width: w, height: h, mobile, init: hideToday });
+    if (mobile) { await js(`document.querySelector('.menu-toggle')?.click()`); await sleep(250); }
+    const navOk = await js(`(()=>{const g=document.querySelector('.gnb');return !!g&&getComputedStyle(g).display!=='none'&&(${mobile}?document.getElementById('header').classList.contains('menu-open'):true)})()`);
+    await js(`document.querySelector('.gnb .gnb-link[href="/about/"]')?.click()`); await sleep(900);
+    ok(navOk && await js('location.pathname') === '/about/', `404 화면 ${w}×${h}: ${mobile ? '모바일 메뉴 열림 → ' : ''}상단 메뉴(회사소개) 이동`);
+  }
+
+  /* ---------- 5. 잘못된 해시 주소: 스크립트 오류 없이 페이지·메뉴·이후 앵커 정상 ---------- */
+  const badHash = [['/about/#%', 'organization', 'organization'], ['/#%', 'notices', 'notices'], ['/disclosure/#%', 'fund', 'disclosure-board'], ['/disclosure/#%E0%A4%A', 'research', 'disclosure-board'], ['/fund/#%ZZ', 'pef-ai', 'pef-ai'], ['/strategy/#%', 'strategy-buyout', 'strategy-buyout'], ['/philosophy/#%C0%AF', 'risk', 'risk'], ['/disclosure/#\\', 'management', 'disclosure-board']];
+  for (const [url, next, target] of badHash) {
+    for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
+      await open(url, { width: w, height: h, mobile, init: hideToday, settle: 900 });
+      const errs = issues.slice();
+      if (mobile) { await js(`document.querySelector('.menu-toggle').click()`); await sleep(250); }
+      const menuOk = await js(`!!document.querySelector('.site-header .gnb a') && (${mobile} ? document.getElementById('header').classList.contains('menu-open') : true)`);
+      if (mobile) { await js(`document.querySelector('.menu-toggle').click()`); await sleep(200); }
+      // 이후 정상 해시로 바꾸면 그대로 이동(해시 처리 리스너가 살아 있음)
+      await js(`location.hash = '${next}'`); await sleep(1300);
+      const after = await js(`(()=>{const el=document.getElementById('${target}');const f=document.querySelector('#disclosure-filters [aria-pressed="true"]');return {top:el?Math.round(el.getBoundingClientRect().top):null,filter:f?f.dataset.filter:null}})()`);
+      const filterOk = target !== 'disclosure-board' || after.filter === next;
+      ok(!errs.length && !issues.length && menuOk && after.top !== null && after.top >= -10 && after.top < 400 && filterOk, `잘못된 해시 ${JSON.stringify(url)} ${w}×${h}: 스크립트 오류 없음, 메뉴 정상, 이후 #${next} 이동${target === 'disclosure-board' ? '·분류 적용' : ''}`, { errs: errs.concat(issues), menuOk, after });
+    }
+  }
+  // 정상 해시: 동적 카드 앵커·공시 분류 해시 (기존 동작 유지)
+  for (const [url, id, filter] of [['/strategy/#strategy-buyout', 'strategy-buyout'], ['/strategy/#strategy-special', 'strategy-special'], ['/fund/#pef-energy', 'pef-energy'], ['/disclosure/#fund', 'disclosure-board', 'fund'], ['/disclosure/#research', 'disclosure-board', 'research'], ['/#notices', 'notices']]) {
+    for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
+      await open(url, { width: w, height: h, mobile, init: hideToday, settle: 1200 });
+      const r = await js(`(()=>{const el=document.getElementById('${id}');const f=document.querySelector('#disclosure-filters [aria-pressed="true"]');return {top:el?Math.round(el.getBoundingClientRect().top):null,filter:f?f.dataset.filter:null,rows:document.querySelectorAll('#disclosure-list .disclosure-row').length}})()`);
+      ok(r.top !== null && r.top >= -10 && r.top < 400 && !issues.length && (!filter || (r.filter === filter && r.rows === 1)), `정상 해시 ${url} ${w}×${h}: 해당 위치로 이동${filter ? '·분류 적용' : ''}`, { ...r, issues });
+    }
   }
 } finally {
   ws.close(); proc.kill(); server.close();

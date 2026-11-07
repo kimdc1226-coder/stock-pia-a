@@ -8,7 +8,15 @@ import path from 'node:path';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const pub = path.join(root, 'public');
 const read = file => fs.readFileSync(path.join(root, file), 'utf8');
+// 원본 PPT와 추출 자료는 저장소에 없는 로컬 전용 자료다. 없으면 준비 절차를 안내하고 끝낸다(README 5절).
+const PPT_NAME = 'STOCK PIA자산운용사.pptx';
+const missing = [PPT_NAME, 'data/ppt-extracted.json', 'assets/ppt'].filter(file => !fs.existsSync(path.join(root, file)));
+if (missing.length) {
+  console.error(`npm run check에 필요한 로컬 전용 자료가 없습니다: ${missing.join(', ')}\n준비 절차(README 5절):\n  1) 원본 '${PPT_NAME}'을 프로젝트 담당자에게 받아 프로젝트 루트에 저장\n  2) powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\\scripts\\extract-ppt.ps1 -Source ".\\${PPT_NAME}"\n  3) data\\ppt-extracted.json과 assets\\ppt\\ 이미지 23개 생성 확인 후 다시 실행`);
+  process.exit(1);
+}
 const source = JSON.parse(read('data/ppt-extracted.json'));
+assert.equal(source.source, PPT_NAME, `data/ppt-extracted.json은 원본 '${PPT_NAME}'에서 추출해야 한다(다른 PPT를 추출함: ${source.source}). README 5절의 재추출 명령으로 다시 추출`);
 
 /* 브라우저와 같은 전역 동작으로 데이터 파일을 실행한다.
    브라우저에서는 window가 전역 객체 자신이라서 `window.SITE_CONTENT = {...}` 뒤에 `SITE_CONTENT.nav = ...`처럼
@@ -246,6 +254,20 @@ for (const text of ['당사 사칭 금융사기 주의 안내', '최근 당사 �
 assert.ok(!/\son[a-z]+=/i.test(notice), '팝업에 인라인 이벤트 속성 금지(CSP)');
 assert.ok(appJs.includes("timeZone: 'Asia/Seoul'") && /try \{ return window\.localStorage\.getItem/.test(appJs) && /try \{ window\.localStorage\.setItem/.test(appJs), '팝업 숨김은 한국시간 날짜 기준, 저장소 접근 실패에도 동작');
 for (const page of pages.filter(p => p.url !== '/')) assert.ok(!page.html.includes('scam-notice'), `${page.url}: 사칭 주의 팝업은 메인에만 표시`);
+// 15. 없는 주소: Cloudflare가 public/404.html을 HTTP 404로 제공 (로컬 서버 두 곳도 같은 규칙 사용)
+const wrangler = JSON.parse(read('wrangler.jsonc').split(/\r?\n/).filter(line => !/^\s*\/\//.test(line)).join('\n'));
+assert.equal(wrangler.assets.directory, './public', '배포 대상은 public/ 폴더');
+assert.equal(wrangler.assets.not_found_handling, '404-page', 'wrangler.jsonc assets.not_found_handling = "404-page"');
+assert.ok(fs.existsSync(path.join(pub, '404.html')) && pageByUrl.get('/404.html').html.includes('<body data-page="404">'), 'public/404.html');
+for (const href of ['href="/styles.css"', 'src="/app.js"', 'src="/data/site-content.js"', 'href="/"', 'href="/contact/"']) assert.ok(pageByUrl.get('/404.html').html.includes(href), `404.html은 하위 주소에서도 동작하도록 절대 경로 사용: ${href}`);
+for (const file of ['scripts/server.mjs', 'scripts/verify-browser.mjs']) assert.ok(read(file).includes("from './not-found.mjs'"), `${file}: 운영과 같은 404 처리(not-found.mjs) 사용`);
+// 16. 잘못된 해시(#% 등): URIError만 처리하고, 해시를 선택자 문자열에 넣지 않는다
+assert.ok(/try \{ return decodeURIComponent\(raw\); \} catch \(error\) \{ if \(error instanceof URIError\) return raw; throw error; \}/.test(appJs), '해시 해석은 URIError만 잡는다');
+assert.ok(!/decodeURIComponent\(location\.hash/.test(appJs) && !/\[data-filter="\$\{/.test(appJs), '해시를 그대로 decode하거나 선택자에 넣는 코드가 남아 있음');
+// 17. 개인정보처리방침 준비 안내: 실제 구성(이미지·영상 내부 제공, 외부는 Google Fonts)과 일치
+const privacyText = (appJs.match(/privacy: \['개인정보처리방침', '([^']+)'\]/) || [])[1] || '';
+assert.ok(privacyText && !/Unsplash/i.test(privacyText) && privacyText.includes('Google Fonts') && privacyText.includes('고객사 확인 후 게시할 예정'), '개인정보처리방침 준비 안내 문구');
+assert.ok(!/<(?:img|video|source)\b[^>]*\bsrc="(?:https?:)?\/\//.test(publicText) && !/img: '(?:https?:)?\/\//.test(siteData), '이미지·영상은 모두 사이트 내부 파일');
 
 const paragraphs = source.slides.flatMap(slide => slide.shapes.filter(shape => !shape.tables.length).flatMap(shape => shape.paragraphs.filter(text => text.trim())));
 const cells = source.slides.flatMap(slide => slide.shapes.flatMap(shape => shape.tables.flatMap(table => table.rows.flat())));

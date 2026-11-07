@@ -25,7 +25,8 @@
     green: svg('<path d="M5 19c0-8 5-13 14-14 0 9-5 14-13 14"/><path d="M5 19c2.5-4 5-6.5 9-8.5"/>')
   };
   const brand = `<a class="brand" href="/" aria-label="그랑스톤 자산운용 홈"><img class="brand-logo" src="/assets/logo-grandstone-sm.png" alt="그랑스톤 자산운용" width="460" height="240" decoding="async"></a>`;
-  const current = content.nav.find(item => item.href !== '/' && path.startsWith(item.href));
+  // 404 안내 화면은 /about/없는주소처럼 하위 주소에서도 열리므로 현재 메뉴를 표시하지 않는다
+  const current = document.body.dataset.page === '404' ? undefined : content.nav.find(item => item.href !== '/' && path.startsWith(item.href));
 
   /* ---------- Shared header ---------- */
   const chevron = '<svg viewBox="0 0 12 12" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m2 4.5 4 4 4-4"/></svg>';
@@ -163,7 +164,7 @@
   const feed = $('#disclosure-feed');
   if (feed) feed.innerHTML = disclosureItems.length ? disclosureItems.slice(0, 3).map(item => `<a class="disclosure-row" href="${esc(disclosureHref(item))}"${fileAttrs(item)}><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span>${disclosureSamplesOnly ? pendingStatus : `<span class="disclosure-status">${esc(item.date || '')}</span>`}<span aria-hidden="true">↗</span></a>`).join('') : emptyDisclosures;
 
-  // Network images retain the requested Unsplash URL; local copies provide a reliable fallback.
+  // 이미지는 모두 사이트 내부 파일(/assets/images/)이다. 읽기에 실패하면 data-fallback의 대체 이미지로 바꾼다.
   $$('img[data-fallback]').forEach(img => {
     const fallback = () => { if (!img.dataset.fallback) return; const p = img.dataset.fallback; delete img.dataset.fallback; img.src = p; };
     img.addEventListener('error', fallback, { once: true });
@@ -225,8 +226,9 @@
     $('#search-input').addEventListener('input', renderDisclosures);
     renderDisclosures();
     applyDisclosureHash = () => {
+      // 주소의 해시를 선택자 문자열에 넣지 않고 값으로 비교한다(특수문자가 와도 선택자 오류 없음)
       const key = location.hash.slice(1);
-      const button = $(`#disclosure-filters [data-filter="${key}"]`);
+      const button = $$('#disclosure-filters [data-filter]').find(item => item.dataset.filter === key);
       if (!button || key === 'all') return false;
       disclosureFilter = key;
       $('#search-input').value = '';
@@ -238,7 +240,7 @@
 
   /* ---------- Footer / contact info dialogs ---------- */
   const info = {
-    privacy: ['개인정보처리방침', '개인정보처리방침은 고객사 확인 후 게시할 예정입니다. 이 프로토타입에는 개인정보 입력·전송 폼, 쿠키 분석 도구, 회원 기능이 없습니다. 외부 폰트와 Unsplash 이미지 요청은 발생할 수 있습니다. 운영 시 개인정보 처리 목적, 항목, 보유기간, 위탁·제3자 제공 여부, 이용자 권리, 보호책임자와 시행일을 확정해야 합니다.'],
+    privacy: ['개인정보처리방침', '개인정보처리방침은 고객사 확인 후 게시할 예정입니다. 이 프로토타입에는 개인정보 입력·전송 폼, 쿠키 분석 도구, 회원 기능이 없습니다. 사이트의 이미지와 영상은 이 사이트 서버에서 제공하며, 글꼴(Google Fonts)은 외부 서버에서 불러옵니다. 운영 시 개인정보 처리 목적, 항목, 보유기간, 위탁·제3자 제공 여부, 이용자 권리, 보호책임자와 시행일을 확정해야 합니다.'],
     consumer: ['금융소비자보호', '금융소비자보호 기준, 민원 접수 채널과 담당자 정보는 확인 후 게시할 예정입니다. 금융투자업 등록 형태와 판매 구조에 맞는 최종 안내가 필요합니다.'],
     contact: ['투자·제휴 문의 안내', 'LP 출자, 프로젝트 펀드, 공동 투자 및 매각 자문 문의는 아래 대표전화로 연락해 주시기 바랍니다. 이 사이트에는 문의 내용을 전송하거나 저장하는 기능이 없습니다.']
   };
@@ -292,8 +294,13 @@
   }
 
   /* ---------- Hash targets (cards are rendered by JS, so scroll after render) ---------- */
+  // 잘못된 퍼센트 인코딩(예: #%)은 URIError만 잡아 해시 문자열을 그대로 쓴다(일치하는 요소가 없으면 이동하지 않음)
+  const hashId = () => {
+    const raw = location.hash.slice(1);
+    try { return decodeURIComponent(raw); } catch (error) { if (error instanceof URIError) return raw; throw error; }
+  };
   const goHash = () => {
-    const id = decodeURIComponent(location.hash.slice(1));
+    const id = hashId();
     if (!id) return;
     const filtered = applyDisclosureHash();
     const el = document.getElementById(filtered ? 'disclosure-board' : id) || (filtered ? null : null);
