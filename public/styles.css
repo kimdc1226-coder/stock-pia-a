@@ -180,9 +180,6 @@ main,.footer{position:relative;z-index:1}
 
 /* People */
 .people-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.person{padding:14px 14px 32px;border-radius:36px}
-.portrait-placeholder{aspect-ratio:1/1.05;border-radius:26px;position:relative;overflow:hidden;background:repeating-linear-gradient(135deg,#ffffffaa 0 14px,#ffffff55 14px 28px);display:flex;align-items:center;justify-content:center;margin-bottom:26px}
-.portrait-placeholder>span{font:800 190px/1 var(--disp);letter-spacing:-.08em;color:transparent;-webkit-text-stroke:1.5px #2f5bff55}
-.portrait-placeholder>small{position:absolute;bottom:14px;left:0;right:0;text-align:center;font:500 9px var(--mono);letter-spacing:.14em;color:var(--mut)}
 .person>.eyebrow,.person>h3,.person>p{margin-inline:20px}.person h3{font-size:26px;margin:14px 20px 10px}.person h3 small{font:400 12px 'Noto Sans KR';color:var(--mut);margin-left:6px;letter-spacing:0}.person>p{font-size:13px}
 .people-grid+.small{margin-top:22px}
 .organization{margin-top:110px}.organization>h3{font-size:clamp(28px,3.4vw,48px);letter-spacing:-.055em;font-weight:800;margin-bottom:30px}
@@ -263,7 +260,6 @@ em,.hero h1 span{background:none;-webkit-background-clip:border-box;background-c
 .accordion details{background:#fff;border:1px solid var(--line)}.accordion details[open]{box-shadow:0 10px 24px -16px #0f172a40}
 .esg-visual{border:1px solid var(--line);box-shadow:0 30px 60px -34px #0f172a66}.esg-visual:after{background:linear-gradient(180deg,transparent 55%,#0f172a66)}.esg-visual img{filter:saturate(.8)}
 .esg-panel{background:#f8fafc;border:1px solid var(--line)}.esg-panel strong{-webkit-text-stroke-color:var(--blue);opacity:.18}
-.portrait-placeholder{background:repeating-linear-gradient(135deg,#f1f5f9 0 14px,#f8fafc 14px 28px)}.portrait-placeholder>span{-webkit-text-stroke-color:#94a3b8}
 .status-badge{background:#fff;border-color:#bfdbfe;color:var(--blue)}
 .actual-data>div{background:#f8fafc;border:1.5px dashed #cbd5e1}.table-scroll{background:#fff}.data-table tbody tr:hover{background:#f8fafc}
 .disclosure-row{background:#fff;border:1px solid var(--line);backdrop-filter:none}.disclosure-row:hover{background:#fff;border-color:#cbd5e1;box-shadow:0 14px 30px -18px #0f172a40}.disclosure-row:hover>span:last-child{background:var(--navy)}.disclosure-row>span:last-child{background:#f1f5f9}
@@ -909,15 +905,13 @@ a.disclosure-row:hover .dr-title{color:var(--blue)}
 .hl-sublist li{position:relative;padding-left:13px}.hl-sublist li:before{content:'';position:absolute;left:0;top:.72em;width:6px;height:2px;border-radius:2px;background:var(--blue)}
 @media(max-width:760px){.hl-num-row{margin-top:22px}}
 
-/* About: CEO 인사말 (PC: 사진 왼쪽·인사말 오른쪽 / 모바일: 세로) */
-.ceo{display:grid;grid-template-columns:minmax(240px,380px) minmax(0,1fr);gap:clamp(36px,6vw,96px);align-items:start}
-.ceo-photo{margin:0}
-.ceo-photo .portrait-placeholder{aspect-ratio:3/4;margin-bottom:22px;border:1px solid var(--line)}.ceo-photo .portrait-placeholder>small{font:500 13px 'Noto Sans KR',sans-serif;letter-spacing:0}
-.ceo-photo figcaption{display:grid;gap:4px;text-align:center}.ceo-photo figcaption span{font-size:14px;color:var(--mut)}.ceo-photo figcaption strong{font:800 22px/1.3 var(--disp);letter-spacing:-.03em;color:var(--ink)}
+/* About: CEO 인사말 (사진 없이 인사말 중심 1열: 블록은 가운데, 글은 왼쪽 정렬) */
+#leadership .section-heading{max-width:780px;margin-inline:auto;margin-bottom:40px;text-align:left}
+.ceo{max-width:780px;margin-inline:auto}
+.ceo-message{text-align:left}
 .ceo-message h3{font-size:clamp(26px,2.8vw,38px);letter-spacing:-.05em;line-height:1.3;margin-bottom:26px}
 .ceo-message p{margin-top:18px;font-size:16px;line-height:1.95;color:#334155;word-break:keep-all}
 .ceo-message .ceo-sign{margin-top:36px;padding-top:24px;border-top:1px solid var(--line);color:var(--ink);font-weight:500}.ceo-sign strong{margin-left:6px;font-size:20px}
-@media(max-width:960px){.ceo{grid-template-columns:1fr}.ceo-photo{width:100%;max-width:340px;margin-inline:auto}}
 @media(max-width:640px){.ceo-message p{font-size:15px;line-height:1.9}}
 
 /* Disclosure rows (실제 자료가 등록되면 사용) */

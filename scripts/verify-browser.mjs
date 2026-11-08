@@ -246,6 +246,20 @@ try {
     const top = await js(`(()=>{const el=document.getElementById('${id}');return el?Math.round(el.getBoundingClientRect().top):null})()`);
     ok(top !== null && top >= -10 && top < 400, `앵커 ${url}: 해당 위치로 이동`, top);
   }
+  // CEO 인사말: 사진 영역 없이 1열·가운데 배치, 글은 왼쪽 정렬, 서명 유지, 가로 넘침·잘림 없음
+  for (const [w, h, mobile] of [[1440, 900, false], [768, 1024, false], [390, 844, true], [320, 568, true]]) {
+    await open('/about/#leadership', { width: w, height: h, mobile, init: hideToday, settle: 1200 });
+    const c = await js(`(()=>{const s=document.getElementById('leadership');const box=s.querySelector('.ceo');const m=s.querySelector('.ceo-message');const sign=s.querySelector('.ceo-sign');const r=box.getBoundingClientRect();const vw=document.documentElement.clientWidth;
+      const h2=s.querySelector('h2').getBoundingClientRect();const mr=m.getBoundingClientRect();const ps=[...m.querySelectorAll('p,h3')];const cut=ps.some(p=>p.getBoundingClientRect().right>vw+0.5||p.getBoundingClientRect().left<-0.5);const p0=getComputedStyle(m.querySelector('p'));
+      return {photo:!!s.querySelector('.portrait-placeholder,.ceo-photo,figure,img'),kText:s.textContent.includes('사진 준비 중'),title:s.querySelector('h2')?.textContent,sign:sign?.textContent.replace(/\\s+/g,' ').trim(),
+        cols:getComputedStyle(box).display==='grid'?getComputedStyle(box).gridTemplateColumns.split(' ').length:1,width:Math.round(r.width),centerOff:Math.round(Math.abs((r.left+r.right)/2-vw/2)),align:p0.textAlign,
+        pad:Math.round(r.left),h2Left:Math.round(h2.left),msgLeft:Math.round(mr.left),h2Align:getComputedStyle(s.querySelector(".section-heading")).textAlign,overflowX:document.documentElement.scrollWidth>vw,cut,fs:parseFloat(p0.fontSize),lh:parseFloat(p0.lineHeight)}})()`);
+    ok(!c.photo && !c.kText && c.title === 'CEO 인사말' && c.sign === '그랑스톤자산운용 대표이사 김복기', `CEO 인사말 ${w}px: 사진 영역 없음, 제목·서명 유지`, c);
+    ok(c.cols === 1 && c.centerOff <= 1 && ['left', 'start'].includes(c.align) && (w < 900 ? c.width <= w - 24 && c.pad >= 12 : c.width <= 800), `CEO 인사말 ${w}px: 1열·가운데 배치·왼쪽 정렬·너비 제한`, c);
+    ok(Math.abs(c.h2Left - c.msgLeft) <= 1 && ["left", "start"].includes(c.h2Align), `CEO 인사말 ${w}px: 큰 제목과 본문의 왼쪽 시작선 일치`, c);
+    ok(!c.overflowX && !c.cut && c.lh / c.fs >= 1.85, `CEO 인사말 ${w}px: 가로 넘침·본문 잘림 없음, 줄 간격 확보`, c);
+    if (w === 1440 || w === 390) await shot(`ceo-leadership-${w}`);
+  }
   // 공시: 준비 중 예시 3개('자료 준비 중'), 분류·검색·초기화, 클릭 시 준비 중 안내(파일 링크 없음)
   const rowsJs = sel => `[...document.querySelectorAll('${sel} .disclosure-row')].map(r=>[...r.children].map(c=>c.textContent.trim()).join('|'))`;
   const samples = ['경영공시|영업보고서 및 결산 공고|자료 준비 중|↗', '펀드공시|펀드 운용보고서 및 수시 공시|자료 준비 중|↗', '리서치|시장 전망 및 투자 인사이트|자료 준비 중|↗'];

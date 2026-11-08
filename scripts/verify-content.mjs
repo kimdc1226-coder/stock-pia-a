@@ -165,7 +165,7 @@ for (const name of ['이사회', '리스크관리위원회', '감사', '대표�
 }
 for (const gone of ['PE 운용부문', 'Multi Asset 투자부문', '부동산 / 인프라 투자부문', '금융주선선']) assert.ok(!about.includes(gone), `옛 조직도 항목이 남아 있음: ${gone}`);
 // 4. 대표자와 연락처 (2026-11 수정: 문의 이메일·대표이사 직통 삭제, 대표전화 02-3454-1201)
-assert.ok(about.includes('김복기 대표이사'), '대표이사 성명이 반영되어야 한다');
+assert.ok(about.includes('대표이사 <strong>김복기</strong>'), '대표이사 성명이 반영되어야 한다');
 const contactPage = pageByUrl.get('/contact/').html;
 assert.ok(contactPage.includes('tel:0234541201') && appJs.includes('tel:0234541201'), '새 대표전화 링크가 Contact 페이지와 문의 팝업에 있어야 한다');
 for (const text of ['02-3454-1201', '서울시 강남구 테헤란로 27길 8', '엠타워 13층', 'www.grandstone-am.com']) assert.ok(contactPage.includes(text), `Contact에 ${text}가 있어야 한다`);
@@ -203,7 +203,17 @@ assert.ok(home.includes('2027 AUM 목표</span><strong class="hl-num"><span data
 assert.ok(about.includes('<h4>자산운용사 설립</h4></li>') && !about.includes('이룸 사모자산운용'), "2022 '자산운용사 설립' 유지, 설립 등록 문구 삭제");
 assert.ok(!about.includes('공식 법인명, 등록 내역'), '연혁 하단 확인 안내 삭제');
 assert.ok(/<section[^>]+id="leadership"[^>]*>[\s\S]*?<h2 id="leadership-title">CEO 인사말<\/h2>/.test(about), '#leadership 자리에 CEO 인사말');
-for (const text of ['새로운 도약과 신뢰를 향한 약속', '존경하는 투자자, 고객, 그리고 금융 파트너 여러분, 안녕하십니까?', '새롭게 출발하는 그랑스톤자산운용의 대표이사 김복기입니다.', '사모 대체투자 시장의 새로운 표준을 제시하고자 힘찬 첫걸음을 내딛습니다.', '최선을 다할 것을 약속드리겠습니다.', '주식회사 그랑스톤자산운용', '그랑스톤자산운용 대표이사 <strong>김복기</strong>']) assert.ok(about.includes(text), `CEO 인사말: ${text}`);
+for (const text of ['새로운 도약과 신뢰를 향한 약속', '존경하는 투자자, 고객, 그리고 금융 파트너 여러분, 안녕하십니까?', '새롭게 출발하는 그랑스톤자산운용의 대표이사 김복기입니다.', '사모 대체투자 시장의 새로운 표준을 제시하고자 힘찬 첫걸음을 내딛습니다.', '최선을 다할 것을 약속드리겠습니다.', '그랑스톤자산운용 대표이사 <strong>김복기</strong>']) assert.ok(about.includes(text), `CEO 인사말: ${text}`);
+// 2026-11 결정: CEO 사진 없이 인사말만 구성 — 사진 영역(자리표시·장식 K·사진 아래 중복 소개) 제거, 인사말·서명·앵커는 보존
+{
+  const ceoCss = read('public/styles.css');
+  const leadership = (about.match(/<section[^>]+id="leadership"[\s\S]*?<\/section>/) || [''])[0];
+  assert.ok(leadership.includes('<p class="ceo-sign">그랑스톤자산운용 대표이사 <strong>김복기</strong></p>'), 'CEO 인사말 하단 서명 유지');
+  for (const gone of ['portrait-placeholder', 'ceo-photo', '<figure', '<figcaption', '<img', '대표이사 사진', '김복기 대표이사', '>K<']) assert.ok(!leadership.includes(gone), `CEO 인사말 영역에 사진 관련 요소가 남아 있음: ${gone}`);
+  assert.ok(!about.includes('portrait-placeholder') && !ceoCss.includes('portrait-placeholder') && !ceoCss.includes('.ceo-photo'), '사진 자리표시·ceo-photo 스타일이 남아 있지 않아야 한다');
+  assert.ok(/\.ceo\{[^}]*max-width:\d+px[^}]*margin-inline:auto/.test(ceoCss) && !/\.ceo\{[^}]*grid-template-columns/.test(ceoCss), 'CEO 인사말은 1열·가운데 배치·최대 너비 제한');
+  assert.ok(/#leadership \.section-heading\{[^}]*max-width:780px[^}]*margin-inline:auto/.test(ceoCss), 'CEO 인사말 제목 영역도 본문과 같은 최대 너비·가운데 배치(#leadership 안으로 한정)');
+}
 for (const gone of ['전문성으로 연결된 팀', 'people-grid', 'OOO', 'OO자산운용', 'OO회계법인', '성명 확인 중', '경력 확인 중', 'PROFILE IMAGE NEEDED']) assert.ok(!about.includes(gone), `삭제된 경영진 카드·임시 인물 정보가 남아 있음: ${gone}`);
 assert.ok(content.nav.find(item => item.id === 'about').children.some(([label, href]) => label === 'CEO 인사말' && href === '/about/#leadership'), "메뉴 'CEO 인사말' → /about/#leadership");
 // 10. 투자철학·운용전략 문구
