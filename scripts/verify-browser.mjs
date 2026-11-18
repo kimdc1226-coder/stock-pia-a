@@ -4,6 +4,7 @@
 // - 사칭 금융사기 주의 팝업: 최초 표시, 닫기, 오늘 하루 숨김, 다음 날 재표시, 저장소 차단 시에도 정상 동작
 // - 모든 페이지 × PC·태블릿·모바일: 콘솔 오류·CSP 차단·깨진 이미지·가로 넘침, 외부 요청은 Google Fonts뿐
 // - 없는 주소: 커스텀 404 페이지를 HTTP 404로 제공(운영 not_found_handling "404-page"와 같은 규칙), 버튼·메뉴 이동
+// - 공시: 67건 경영공시·10건씩 페이지·분류·검색·상세 팝업·첨부(한글 파일명) 열람/다운로드, 메인 요약 3건
 // - 잘못된 해시(#% 등)에서도 스크립트 오류 없이 메뉴·이후 앵커·공시 분류 정상, 정상 해시·동적 카드 앵커 유지
 // 사용: node scripts/verify-browser.mjs [스크린샷 저장 폴더(선택, public/ 밖)]
 import http from 'node:http';
@@ -13,6 +14,7 @@ import os from 'node:os';
 import path from 'node:path';
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
+import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 import { notFoundFile, requestPath } from './not-found.mjs';
 
@@ -28,6 +30,10 @@ const pub = path.join(root, 'public');
 const shotDir = process.argv[2] ? path.resolve(process.argv[2]) : null;
 if (shotDir) { assert.ok(!shotDir.startsWith(pub), '스크린샷은 public/ 밖에 저장한다'); fs.mkdirSync(shotDir, { recursive: true }); }
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+// 사이트 데이터(메뉴·공시 목록)를 검사 기대값으로 쓴다. 공시 목록은 엑셀에서 자동 생성된 public/data/disclosures-data.js
+const dataContext = { window: {} }; dataContext.window = dataContext; vm.createContext(dataContext);
+for (const file of ['site-content.js', 'disclosures-data.js']) vm.runInContext(fs.readFileSync(path.join(pub, 'data', file), 'utf8'), dataContext);
+const content = dataContext.SITE_CONTENT;
 
 /* ---------- 정적 서버 (실제 CSP 적용, HTTPS 전용 지시어만 제외) ---------- */
 const csp = fs.readFileSync(path.join(pub, '_headers'), 'utf8').match(/Content-Security-Policy:\s*(.+)/)[1].replace(/;\s*upgrade-insecure-requests/, '').trim();
@@ -260,23 +266,82 @@ try {
     ok(!c.overflowX && !c.cut && c.lh / c.fs >= 1.85, `CEO 인사말 ${w}px: 가로 넘침·본문 잘림 없음, 줄 간격 확보`, c);
     if (w === 1440 || w === 390) await shot(`ceo-leadership-${w}`);
   }
-  // 공시: 준비 중 예시 3개('자료 준비 중'), 분류·검색·초기화, 클릭 시 준비 중 안내(파일 링크 없음)
+  // 공시(2026-11-18 공시자료 연동): 67건 모두 경영공시, 10건씩 7쪽, 분류·검색·초기화, 상세 팝업·첨부 열람/다운로드, 메인 요약 3건
   const rowsJs = sel => `[...document.querySelectorAll('${sel} .disclosure-row')].map(r=>[...r.children].map(c=>c.textContent.trim()).join('|'))`;
-  const samples = ['경영공시|영업보고서 및 결산 공고|자료 준비 중|↗', '펀드공시|펀드 운용보고서 및 수시 공시|자료 준비 중|↗', '리서치|시장 전망 및 투자 인사이트|자료 준비 중|↗'];
   await open('/disclosure/', { init: hideToday });
-  const dis = await js(`(async()=>{const rows=()=>${rowsJs('#disclosure-list')};const a=rows();document.querySelector('#disclosure-filters [data-filter="fund"]').click();const b=rows();const pressed=document.querySelector('#disclosure-filters [data-filter="fund"]').getAttribute('aria-pressed');
-    const i=document.getElementById('search-input');i.value='없는자료';i.dispatchEvent(new Event('input'));const c=document.getElementById('disclosure-list').textContent.trim();document.getElementById('reset-search')?.click();const d=rows();
-    i.value='인사이트';i.dispatchEvent(new Event('input'));const e=rows();i.value='';i.dispatchEvent(new Event('input'));
-    return {a,b,pressed,c,d,e,status:document.getElementById('disclosure-status').textContent,links:document.querySelectorAll('#disclosure-list a[href]').length}})()`);
-  ok(JSON.stringify(dis.a) === JSON.stringify(samples) && JSON.stringify(dis.d) === JSON.stringify(samples) && dis.status === '3개 항목 · 자료 준비 중' && dis.links === 0, "공시 페이지: 준비 중 예시 3개·'자료 준비 중' 표시, 파일 링크 없음", dis);
-  ok(JSON.stringify(dis.b) === JSON.stringify([samples[1]]) && dis.pressed === 'true' && dis.c.startsWith('검색 조건에 맞는 자료가 없습니다.') && JSON.stringify(dis.e) === JSON.stringify([samples[2]]), '공시 페이지: 분류·검색·초기화 동작', dis);
-  await js(`document.querySelector('#disclosure-list [data-disclosure="management"]').click()`); await sleep(250);
-  const pend = await js(`({open:document.getElementById('detail-dialog').open,title:document.getElementById('dialog-title').textContent,body:document.getElementById('dialog-body').textContent,links:document.querySelectorAll('#dialog-body a').length})`);
-  await key('Escape');
-  ok(pend.open && pend.title === '영업보고서 및 결산 공고' && pend.body.includes('자료 준비 중입니다.') && pend.links === 0 && !(await js(`document.getElementById('detail-dialog').open`)), "공시 페이지: 예시 클릭 시 '자료 준비 중' 안내(다운로드 없음), Esc로 닫힘", pend);
+  const dis = await js(`(async()=>{const rows=()=>${rowsJs('#disclosure-list')};const st=()=>document.getElementById('disclosure-status').textContent;const pg=document.getElementById('disclosure-pager');
+    const r1=rows();const s1=st();const pages=[...pg.querySelectorAll('button')].map(b=>b.textContent);
+    pg.querySelector('button[data-page="7"]').click();const r7=rows();const s7=st();const cur=pg.querySelector('[aria-current="page"]')?.textContent;
+    pg.querySelector('button[aria-label="이전 페이지"]').click();const s6=st();
+    const f=k=>document.querySelector('#disclosure-filters [data-filter="'+k+'"]');
+    f('fund').click();const fund={rows:rows().length,text:document.getElementById('disclosure-list').textContent.trim(),st:st(),pagerHidden:pg.hidden,pressed:f('fund').getAttribute('aria-pressed')};
+    f('research').click();const research={rows:rows().length,text:document.getElementById('disclosure-list').textContent.trim(),st:st()};
+    f('management').click();const man=st();f('all').click();
+    const i=document.getElementById('search-input');i.value='영업보고서';i.dispatchEvent(new Event('input'));const sr=st();const srRows=rows();
+    i.value='없는자료';i.dispatchEvent(new Event('input'));const none=document.getElementById('disclosure-list').textContent.trim();document.getElementById('reset-search')?.click();const reset=st();
+    const go=[...document.querySelectorAll('#disclosure-list .dr-go')].map(a=>({tag:a.tagName,href:a.getAttribute('href'),target:a.target}));
+    return {r1,s1,pages,r7,s7,cur,s6,fund,research,man,sr,srRows,none,reset,go}})()`);
+  const expectedReports = content.disclosures.filter(item => item.title.replace(/\s+/g, '').includes('영업보고서')).length;
+  ok(dis.r1.length === 10 && dis.r1[0] === `경영공시|${content.disclosures[0].title}|${content.disclosures[0].date}|↗` && dis.s1 === '총 67개 항목 · 1/7쪽' && dis.pages.join() === '‹,1,2,3,4,5,6,7,›', '공시 페이지: 67건 최신순, 첫 쪽 10건, 페이지 번호 1~7', dis);
+  ok(dis.r7.length === 7 && dis.s7 === '총 67개 항목 · 7/7쪽' && dis.cur === '7' && dis.s6 === '총 67개 항목 · 6/7쪽', '공시 페이지: 페이지 이동(7쪽 7건, 이전 버튼)', dis);
+  ok(dis.fund.rows === 0 && dis.fund.text === '등록된 자료가 없습니다.' && dis.fund.st === '총 0개 항목' && dis.fund.pagerHidden && dis.fund.pressed === 'true' && dis.research.text === '등록된 자료가 없습니다.' && dis.research.st === '총 0개 항목' && dis.man === '총 67개 항목 · 1/7쪽', "공시 분류: 펀드공시·리서치는 '등록된 자료가 없습니다', 경영공시는 67건", dis);
+  ok(dis.sr.startsWith(`총 ${expectedReports}개 항목`) && dis.srRows.every(r => r.includes('영업보고서')) && dis.none.startsWith('검색 조건에 맞는 자료가 없습니다.') && dis.reset === '총 67개 항목 · 1/7쪽', `공시 검색: '영업보고서' ${expectedReports}건, 결과 없음·초기화`, dis);
+  ok(dis.go.length === 10 && dis.go.every((g, n) => g.tag === 'A' && g.href === content.disclosures[n].file && g.target === '_blank'), '공시 ↗: 첨부파일을 새 탭으로 여는 링크', dis.go);
+  // 상세 팝업: 첫 항목(첨부 PDF), 첨부 없는 항목, 표·지도 이미지 항목
+  const detail = async id => {
+    await js(`(()=>{const item=${JSON.stringify(id)};const list=document.getElementById('disclosure-list');let b=list.querySelector('[data-disclosure="'+item+'"]');
+      for(let n=1;!b&&n<=7;n++){document.querySelector('#disclosure-pager button[data-page="'+n+'"]').click();b=list.querySelector('[data-disclosure="'+item+'"]');}b.click()})()`);
+    await sleep(300);
+    const d = await js(`(()=>{const dl=document.getElementById('detail-dialog');const body=document.getElementById('dialog-body');const img=body.querySelector('img');
+      return {open:dl.open,cls:dl.classList.contains('disclosure-dialog'),eyebrow:document.getElementById('dialog-eyebrow').textContent,title:document.getElementById('dialog-title').textContent,text:body.textContent,
+        view:body.querySelector('a.dd-btn:not([download])')?.getAttribute('href'),viewTarget:body.querySelector('a.dd-btn:not([download])')?.target,down:body.querySelector('a[download]')?.getAttribute('download'),downHref:body.querySelector('a[download]')?.getAttribute('href'),
+        table:[...body.querySelectorAll('.dd-table th,.dd-table td')].map(c=>c.textContent),img:img?{w:img.naturalWidth,alt:img.alt}:null,sw:dl.scrollWidth,cw:dl.clientWidth}})()`);
+    return d;
+  };
+  const first = content.disclosures[0];
+  const d1 = await detail(first.id);
+  const head = await js(`fetch(${JSON.stringify(first.file)},{method:'HEAD'}).then(r=>({s:r.status,t:r.headers.get('content-type')}))`);
+  ok(d1.open && d1.cls && d1.eyebrow === '경영공시' && d1.title === first.title && d1.text.includes(first.content.slice(0, 30)) && d1.text.includes(`작성일자 ${first.date}`) && d1.view === first.file && d1.viewTarget === '_blank' && d1.down === first.fileName && d1.downHref === first.file && head.s === 200 && /application\/pdf/.test(head.t), '공시 상세 팝업: 분류·제목·작성일자·내용·첨부 열람(새 탭)/다운로드(한글 파일명), 파일 200·PDF', { d1, head });
+  await shot('disclosure-detail-1440x900');
+  await key('Escape'); await sleep(200);
+  ok(!(await js(`document.getElementById('detail-dialog').open`)) && !(await js(`document.getElementById('detail-dialog').classList.contains('disclosure-dialog')`)), '공시 상세 팝업: Esc로 닫힘');
+  const spaced = content.disclosures.find(item => item.fileName && /\s/.test(item.fileName));
+  const headSpaced = await js(`fetch(${JSON.stringify(spaced.file)},{method:'HEAD'}).then(r=>({s:r.status,t:r.headers.get('content-type')}))`);
+  ok(headSpaced.s === 200 && /application\/pdf/.test(headSpaced.t), `공시 첨부: 공백·한글 파일명도 열림 (${spaced.fileName})`, headSpaced);
+  const noFile = content.disclosures.find(item => !item.file && !item.table && !item.image);
+  const d2 = await detail(noFile.id);
+  ok(d2.open && d2.title === noFile.title && d2.text.includes('첨부파일이 없는 공시입니다.') && !d2.view, '공시 상세 팝업: 첨부 없는 항목 안내', d2);
+  await key('Escape'); await sleep(200);
+  const tableItem = content.disclosures.find(item => item.table);
+  const d3 = await detail(tableItem.id);
+  ok(d3.open && d3.table.length === 4 && d3.table[0] === '현행' && d3.table[3].includes('erumasset.com'), '공시 상세 팝업: 정관 변경 현행·변경 표', d3);
+  await key('Escape'); await sleep(200);
+  const imageItem = content.disclosures.find(item => item.image);
+  const d4 = await detail(imageItem.id);
+  await sleep(400);
+  const d4img = await js(`(()=>{const i=document.querySelector('#dialog-body img');return i?{w:i.naturalWidth,alt:i.alt}:null})()`);
+  ok(d4.open && d4img && d4img.w > 0 && d4img.alt.includes('테헤란로27길 8'), '공시 상세 팝업: 사무실 이전 안내 지도 이미지 표시', { d4, d4img });
+  await key('Escape'); await sleep(200);
+  // 모바일: 목록·페이지·팝업 가로 넘침 없음
+  for (const [w, h] of [[390, 844], [320, 568]]) {
+    await open('/disclosure/', { width: w, height: h, mobile: true, init: hideToday });
+    const m = await js(`(()=>{const vw=document.documentElement.clientWidth;const over=[...document.querySelectorAll('#disclosure-list .disclosure-row,#disclosure-pager')].some(e=>e.getBoundingClientRect().right>vw+0.5);return {sw:document.documentElement.scrollWidth,vw,over,rows:document.querySelectorAll('#disclosure-list .disclosure-row').length}})()`);
+    const dm = await detail(first.id);
+    await shot(`disclosure-detail-${w}x${h}`);
+    ok(m.sw <= m.vw && !m.over && m.rows === 10 && dm.open && dm.sw <= dm.cw, `공시 모바일 ${w}×${h}: 목록·페이지·상세 팝업 가로 넘침 없음`, { m, dm: { sw: dm.sw, cw: dm.cw } });
+    await key('Escape'); await sleep(150);
+  }
+  // 메인 공시 요약: 최신 3건(작성일자), 누르면 공시 페이지에서 해당 상세 팝업
   await open('/', { init: hideToday });
-  ok(JSON.stringify(await js(rowsJs('#disclosure-feed'))) === JSON.stringify(samples), "메인 공시 요약: 준비 중 예시 3개·'자료 준비 중' 표시");
+  const feedRows = await js(rowsJs('#disclosure-feed'));
+  const feedHref = await js(`[...document.querySelectorAll('#disclosure-feed a')].map(a=>a.getAttribute('href'))`);
+  ok(JSON.stringify(feedRows) === JSON.stringify(content.disclosures.slice(0, 3).map(item => `경영공시|${item.title}|${item.date}|↗`)) && feedHref.every((h, n) => h === `/disclosure/#${content.disclosures[n].id}`), '메인 공시 요약: 최신 3건·작성일자, 공시 페이지 상세로 연결', { feedRows, feedHref });
   await shot('home-notices-1440x900');
+  const second = content.disclosures[1];
+  await open(`/disclosure/#${second.id}`, { init: hideToday, settle: 1200 });
+  const deep = await js(`({open:document.getElementById('detail-dialog').open,title:document.getElementById('dialog-title').textContent})`);
+  ok(deep.open && deep.title === second.title, '메인 요약 링크(/disclosure/#항목): 해당 공시 상세 팝업이 열림', deep);
+  await key('Escape'); await sleep(150);
   // Value-Up 카드: 라벨·제목·설명 시작 높이 동일 / Physical AI 테마 제목 한 줄, 다른 테마 크기 유지
   for (const [w, h, mobile] of [[1920, 1080, false], [1440, 900, false], [1366, 768, false], [390, 844, true], [320, 640, true]]) {
     await open('/strategy/', { width: w, height: h, mobile, init: hideToday });
@@ -343,11 +408,11 @@ try {
     }
   }
   // 정상 해시: 동적 카드 앵커·공시 분류 해시 (기존 동작 유지)
-  for (const [url, id, filter] of [['/strategy/#strategy-buyout', 'strategy-buyout'], ['/strategy/#strategy-special', 'strategy-special'], ['/fund/#pef-energy', 'pef-energy'], ['/disclosure/#fund', 'disclosure-board', 'fund'], ['/disclosure/#research', 'disclosure-board', 'research'], ['/#notices', 'notices']]) {
+  for (const [url, id, filter] of [['/strategy/#strategy-buyout', 'strategy-buyout'], ['/strategy/#strategy-special', 'strategy-special'], ['/fund/#pef-energy', 'pef-energy'], ['/disclosure/#management', 'disclosure-board', 'management'], ['/disclosure/#fund', 'disclosure-board', 'fund'], ['/disclosure/#research', 'disclosure-board', 'research'], ['/#notices', 'notices']]) {
     for (const [w, h, mobile] of [[1440, 900, false], [390, 844, true]]) {
       await open(url, { width: w, height: h, mobile, init: hideToday, settle: 1200 });
       const r = await js(`(()=>{const el=document.getElementById('${id}');const f=document.querySelector('#disclosure-filters [aria-pressed="true"]');return {top:el?Math.round(el.getBoundingClientRect().top):null,filter:f?f.dataset.filter:null,rows:document.querySelectorAll('#disclosure-list .disclosure-row').length}})()`);
-      ok(r.top !== null && r.top >= -10 && r.top < 400 && !issues.length && (!filter || (r.filter === filter && r.rows === 1)), `정상 해시 ${url} ${w}×${h}: 해당 위치로 이동${filter ? '·분류 적용' : ''}`, { ...r, issues });
+      ok(r.top !== null && r.top >= -10 && r.top < 400 && !issues.length && (!filter || (r.filter === filter && r.rows === (filter === 'management' ? 10 : 0))), `정상 해시 ${url} ${w}×${h}: 해당 위치로 이동${filter ? '·분류 적용' : ''}`, { ...r, issues });
     }
   }
 } finally {

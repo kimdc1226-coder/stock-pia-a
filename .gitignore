@@ -5,3 +5,5 @@
 /docs/
 /update.txt
 /MAIN_Image.png
+# 공시 원본(엑셀·첨부 원본). 공개용 사본은 scripts/build-disclosures.py가 public/disclosures/에 만든다
+/공시자료/

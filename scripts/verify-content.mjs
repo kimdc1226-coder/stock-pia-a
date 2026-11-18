@@ -25,6 +25,7 @@ const context = {};
 context.window = context;
 vm.createContext(context);
 vm.runInContext(read('public/data/site-content.js'), context);
+vm.runInContext(read('public/data/disclosures-data.js'), context); // 공시 목록(엑셀에서 자동 생성)
 const content = context.window.SITE_CONTENT;
 assert.ok(content && content.nav && content.cards, 'SITE_CONTENT(nav, cards 포함)가 로드되어야 한다');
 
@@ -237,16 +238,49 @@ assert.ok(!/portfolio-body|portfolio-filters|table-scroll/.test(appJs + read('pu
 const bars = [...fund.matchAll(/<i data-count="([\d.]+)" data-dec="1">/g)].map(m => Math.round(Number(m[1]) * 10000));
 assert.deepEqual(bars, sums, '연도별 AUM 그래프(0.6·1.0·1.6조)가 PPT 합계와 같아야 한다');
 assert.ok(/id="portfolio"/.test(fund) && content.nav.find(item => item.id === 'fund').children.some(([label, href]) => label === 'AUM 성장 목표' && href === '/fund/#portfolio'), "메뉴 'AUM 성장 목표' → /fund/#portfolio");
-// 13. 공시: 실제 자료(disclosures)가 없으면 준비 중 예시 3개(disclosureSamples)를 '자료 준비 중'으로 표시 (2026-11-07 요청으로 복원)
+// 13. 공시: 공시자료 정리.xlsx → public/data/disclosures-data.js(scripts/build-disclosures.py 자동 생성), 첨부는 public/disclosures/ (2026-11-18)
 assert.ok(!publicText.includes('구성 예시') && !publicText.includes('플레이스홀더'), "삭제한 '구성 예시' 안내 문장이 다시 들어감");
-assert.deepEqual([...content.disclosureSamples.map(item => `${item.category}|${item.label}|${item.title}`)], ['management|경영공시|영업보고서 및 결산 공고', 'fund|펀드공시|펀드 운용보고서 및 수시 공시', 'research|리서치|시장 전망 및 투자 인사이트'], '공시 준비 중 예시 3개');
-for (const item of content.disclosureSamples) assert.ok(!('date' in item) && !('file' in item), `예시에는 게시일·파일을 넣지 않는다: ${item.title}`);
-assert.ok(appJs.includes('const disclosureSamplesOnly = !content.disclosures.length;') && appJs.includes('disclosureSamplesOnly ? content.disclosureSamples || [] : content.disclosures'), '실제 자료가 등록되면 예시는 표시하지 않는다(중복 금지)');
-assert.ok(appJs.includes('<span class="disclosure-status">자료 준비 중</span>') && appJs.includes('자료 준비 중입니다. 현재 등록된 공시 문서나 다운로드 파일은 없습니다.'), "예시 행의 '자료 준비 중' 표시와 클릭 안내");
-assert.ok(appJs.includes('등록된 공시자료가 없습니다.'), '공시 빈 상태 문구');
-for (const item of content.disclosures) {
-  assert.ok(['management', 'fund', 'research'].includes(item.category) && item.title && /^\d{4}-\d{2}-\d{2}$/.test(item.date || ''), `공시 항목 형식: ${item.title}`);
-  if (item.file) assert.ok(fs.existsSync(path.join(pub, item.file)), `공시 첨부파일이 없음: ${item.file}`);
+assert.ok(!('disclosureSamples' in content) && !appJs.includes('disclosureSamples') && !appJs.includes('자료 준비 중'), "공시 '자료 준비 중' 예시(더미)는 삭제되어야 한다");
+assert.ok(appJs.includes('등록된 자료가 없습니다.') && appJs.includes('const PAGE_SIZE = 10;') && appJs.includes('총 ${rows.length}개 항목'), '공시 빈 상태 문구·10건 페이지·총 N개 항목 표시');
+{
+  const disclosureData = read('public/data/disclosures-data.js');
+  assert.ok(disclosureData.startsWith('// 자동 생성 파일'), 'disclosures-data.js는 변환 스크립트가 만든 파일이어야 한다');
+  for (const page of ['/', '/disclosure/']) {
+    const html = pageByUrl.get(page).html;
+    assert.ok(html.indexOf('src="/data/site-content.js"') < html.indexOf('src="/data/disclosures-data.js"') && html.indexOf('src="/data/disclosures-data.js"') < html.indexOf('src="/app.js"'), `${page}: 공시 데이터는 site-content.js 다음, app.js 앞에서 불러와야 한다`);
+  }
+  const items = content.disclosures;
+  assert.ok(items.length === 67, `공시 건수(엑셀 데이터 67행)와 같아야 한다: ${items.length}`);
+  const ids = new Set(), linked = new Set();
+  let prev = '9999.99.99';
+  for (const item of items) {
+    const where = `공시 ${item.id} ${item.title}`;
+    assert.ok(item.category === 'management' && item.label === '경영공시', `${where}: 분류는 모두 경영공시`);
+    assert.ok(/^m\d{8}-\d{2}$/.test(item.id) && !ids.has(item.id), `${where}: id 형식·중복`); ids.add(item.id);
+    assert.ok(/^\d{4}\.\d{2}\.\d{2}$/.test(item.date) && item.date <= prev, `${where}: 작성일자 YYYY.MM.DD·최신순`); prev = item.date;
+    assert.ok(item.title && !/https?:\/\//.test(item.title) && (item.content || item.table), `${where}: 제목(텍스트만)·내용`);
+    if (item.file) {
+      assert.ok(item.file === '/disclosures/' + encodeURIComponent(item.fileName) && /^[\x21-\x7e]+$/.test(item.file), `${where}: 첨부 주소는 파일명을 인코딩한 /disclosures/ 경로`);
+      assert.ok(fs.existsSync(path.join(pub, 'disclosures', item.fileName)), `${where}: 첨부파일 없음 ${item.fileName}`);
+      assert.ok(['PDF', 'PNG'].includes(item.fileType) && item.fileSize, `${where}: 파일 형식·크기 표시`);
+      linked.add(item.fileName);
+    }
+    if (item.image) assert.ok(fs.existsSync(path.join(pub, decodeURIComponent(item.image.src))) && item.image.alt, `${where}: 본문 이미지`);
+  }
+  assert.ok(items.filter(item => item.file).length === 59 && items.filter(item => !item.file).length === 8, '첨부 59건·첨부 없음 8건');
+  const published = fs.readdirSync(path.join(pub, 'disclosures')).filter(name => !fs.statSync(path.join(pub, 'disclosures', name)).isDirectory());
+  assert.deepEqual(published.sort(), [...linked].sort(), 'public/disclosures/에는 공시에 연결된 첨부파일만 있어야 한다(엑셀·미사용 파일 금지)');
+  const walk = dir => fs.readdirSync(dir, { withFileTypes: true }).flatMap(e => e.isDirectory() ? walk(path.join(dir, e.name)) : [e.name]);
+  assert.ok(!walk(pub).some(name => /\.xlsx?$/i.test(name) || name.startsWith('~$')), '공개 폴더에 엑셀(원본 공시자료 정리)이 들어가면 안 된다');
+  assert.ok(read('.gitignore').includes('/공시자료/'), '원본 공시자료 폴더는 git에서 제외');
+  const office = items.find(item => item.title === '[안내]사무실이전 안내');
+  assert.ok(office && office.image && office.image.src === '/disclosures/images/office-map-20260226.png', '사무실 이전 안내: 지도 이미지 본문 삽입');
+  const articles = items.find(item => item.title === '정관 변경 공시(공고방법)');
+  assert.ok(articles && articles.table && articles.table.head.join() === '현행,변경' && articles.table.rows[0][1].includes('erumasset.com'), '정관 변경 공시(공고방법): 현행·변경 표');
+  const agm2023 = items.find(item => item.title === '2023년 정기주주총회 결과 공시');
+  assert.ok(agm2023 && agm2023.content.includes('2023년 3월 31일 개최된') && !agm2023.content.includes('2022년 3월'), '2023년 정기주주총회 결과 공시: 원본 오타(2022년) 정정');
+  const feb = items.find(item => item.date === '2025.02.12' && item.title === '유상증자 공시');
+  assert.ok(feb && feb.fileName === '20250213 주요경영상황보고_유상증자.pdf', '2025.02.12 유상증자 공시 ↔ 실제 파일 20250213(엑셀 표기 20250212) 대응');
 }
 // 13-1. 줄바꿈: 함께 읽혀야 하는 표현만 묶고(.nb), PC용 강제 줄바꿈은 desktop-only로 모바일에서 해제
 const css = read('public/styles.css');

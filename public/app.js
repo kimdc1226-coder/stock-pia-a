@@ -119,7 +119,7 @@
     const box = dialog.getBoundingClientRect();
     if (event.target === dialog && (event.clientX < box.left || event.clientX > box.right || event.clientY < box.top || event.clientY > box.bottom)) dialog.close();
   });
-  dialog.addEventListener('close', () => { dialog.classList.remove('pef-dialog'); document.body.classList.remove('modal-open'); dialogOpener?.focus(); });
+  dialog.addEventListener('close', () => { dialog.classList.remove('pef-dialog', 'disclosure-dialog'); document.body.classList.remove('modal-open'); dialogOpener?.focus(); });
 
   /* ---------- Cards rendered from data ---------- */
   const cardImg = card => `<img class="sc-media" src="${card.img}"${card.fb ? ` data-fallback="${card.fb}"` : ''} alt="" loading="lazy">`;
@@ -153,16 +153,12 @@
   if (tilesS) tilesS.innerHTML = content.strategies.map(s => tile(`/strategy/#strategy-${s.id}`, s.id, '자세히 보기', s.number)).join('');
   const tilesP = $('#tiles-pef');
   if (tilesP) tilesP.innerHTML = content.pefThemes.map(t => panel(`/fund/#pef-${t.id}`, t.id, '자세히 보기', t.number)).join('');
-  // Disclosures: real documents live in content.disclosures ({ category, label, title, date, file }).
-  // Until one is registered, the "자료 준비 중" samples are shown instead (never both, never with dates or files).
-  const emptyDisclosures = '<div class="empty-state"><p>등록된 공시자료가 없습니다.</p></div>';
-  const disclosureSamplesOnly = !content.disclosures.length;
-  const disclosureItems = disclosureSamplesOnly ? content.disclosureSamples || [] : content.disclosures;
-  const pendingStatus = '<span class="disclosure-status">자료 준비 중</span>';
-  const disclosureHref = item => item.file || `/disclosure/#${item.category}`;
-  const fileAttrs = item => item.file ? ' target="_blank" rel="noopener"' : '';
+  // Disclosures: content.disclosures는 public/data/disclosures-data.js(엑셀에서 자동 생성)가 채운다.
+  // 항목 { id, category, label, title, date(YYYY.MM.DD), content, file?(인코딩된 주소), fileName?, fileType?, fileSize?, image?, table? }
+  const disclosureItems = content.disclosures || [];
+  const emptyDisclosures = '<div class="empty-state"><p>등록된 자료가 없습니다.</p></div>';
   const feed = $('#disclosure-feed');
-  if (feed) feed.innerHTML = disclosureItems.length ? disclosureItems.slice(0, 3).map(item => `<a class="disclosure-row" href="${esc(disclosureHref(item))}"${fileAttrs(item)}><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span>${disclosureSamplesOnly ? pendingStatus : `<span class="disclosure-status">${esc(item.date || '')}</span>`}<span aria-hidden="true">↗</span></a>`).join('') : emptyDisclosures;
+  if (feed) feed.innerHTML = disclosureItems.length ? disclosureItems.slice(0, 3).map(item => `<a class="disclosure-row" href="/disclosure/#${esc(item.id)}"><span>${esc(item.label)}</span><span class="dr-title">${esc(item.title)}</span><span class="disclosure-status">${esc(item.date)}</span><span class="dr-go" aria-hidden="true">↗</span></a>`).join('') : emptyDisclosures;
 
   // 이미지는 모두 사이트 내부 파일(/assets/images/)이다. 읽기에 실패하면 data-fallback의 대체 이미지로 바꾼다.
   $$('img[data-fallback]').forEach(img => {
@@ -192,23 +188,55 @@
   });
 
   /* ---------- Disclosure board ---------- */
+  // 분류·검색(제목)·페이지(10건씩). 행 제목을 누르면 상세 팝업, 오른쪽 ↗는 첨부파일을 새 탭으로 연다.
   let applyDisclosureHash = () => {};
+  const disclosureDetail = (item, opener) => {
+    const body = item.content ? `<div class="dd-body">${esc(item.content)}</div>` : '';
+    const cells = (tag, values) => values.map(value => `<${tag}${tag === 'th' ? ' scope="col"' : ''}>${esc(value)}</${tag}>`).join('');
+    const table = item.table ? `<div class="dd-table-wrap"><table class="dd-table"><thead><tr>${cells('th', item.table.head)}</tr></thead><tbody>${item.table.rows.map(r => `<tr>${cells('td', r)}</tr>`).join('')}</tbody></table></div>` : '';
+    const image = item.image ? `<figure class="dd-figure"><img src="${esc(item.image.src)}" alt="${esc(item.image.alt)}"></figure>` : '';
+    const size = item.fileSize ? ` <small>(${esc(item.fileSize)})</small>` : '';
+    const attach = item.file
+      ? `<div class="dd-attach"><span class="dd-file"><b>${esc(item.fileType || '파일')}</b><span>${esc(item.fileName || '')}${size}</span></span><span class="dd-actions"><a class="dd-btn" href="${esc(item.file)}" target="_blank" rel="noopener">열람</a><a class="dd-btn dd-btn-line" href="${esc(item.file)}" download="${esc(item.fileName || '')}">다운로드</a></span></div>`
+      : '<p class="dialog-note dd-none">첨부파일이 없는 공시입니다.</p>';
+    openDialog(item.label, item.title, `<p class="dd-meta"><span>작성일자 ${esc(item.date)}</span></p>${body}${table}${image}${attach}`, opener);
+    dialog.classList.add('disclosure-dialog');
+  };
   if ($('#disclosure-list')) {
+    const PAGE_SIZE = 10;
     let disclosureFilter = 'all';
+    let page = 1;
     const normalize = text => text.toLocaleLowerCase('ko-KR').replace(/\s+/g, '');
-    const renderDisclosures = () => {
+    const list = $('#disclosure-list');
+    const pager = document.createElement('nav');
+    pager.className = 'pager';
+    pager.id = 'disclosure-pager';
+    pager.setAttribute('aria-label', '공시 목록 페이지');
+    list.after(pager);
+    const filtered = () => {
       const term = normalize($('#search-input').value);
-      const rows = disclosureItems.filter(item => (disclosureFilter === 'all' || item.category === disclosureFilter) && normalize(item.title + item.label).includes(term));
-      const row = item => disclosureSamplesOnly
-        ? `<div class="disclosure-row"><span>${esc(item.label)}</span><button type="button" data-disclosure="${esc(item.category)}">${esc(item.title)}</button>${pendingStatus}<span aria-hidden="true">↗</span></div>`
-        : `<div class="disclosure-row"><span>${esc(item.label)}</span>${item.file ? `<a class="dr-title" href="${esc(item.file)}" target="_blank" rel="noopener">${esc(item.title)}</a>` : `<span class="dr-title">${esc(item.title)}</span>`}<span class="disclosure-status">${esc(item.date || '')}</span><span aria-hidden="true">↗</span></div>`;
-      $('#disclosure-list').innerHTML = rows.length ? rows.map(row).join('')
+      return disclosureItems.filter(item => (disclosureFilter === 'all' || item.category === disclosureFilter) && normalize(item.title).includes(term));
+    };
+    const go = item => item.file
+      ? `<a class="dr-go" href="${esc(item.file)}" target="_blank" rel="noopener" aria-label="${esc(item.title)} 첨부파일 새 탭에서 열기">↗</a>`
+      : '<span class="dr-go dr-none" aria-hidden="true"></span>';
+    const row = item => `<div class="disclosure-row"><span>${esc(item.label)}</span><button type="button" class="dr-title" data-disclosure="${esc(item.id)}">${esc(item.title)}</button><span class="disclosure-status">${esc(item.date)}</span>${go(item)}</div>`;
+    const pageButton = (n, label, text, attrs = '') => `<button type="button" data-page="${n}" aria-label="${label}"${attrs}>${text}</button>`;
+    const renderDisclosures = (keepPage = false) => {
+      const rows = filtered();
+      const term = $('#search-input').value.trim();
+      const pages = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+      if (!keepPage) page = 1;
+      page = Math.min(Math.max(page, 1), pages);
+      const shown = rows.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+      list.innerHTML = shown.length ? shown.map(row).join('')
         : term ? '<div class="empty-state"><p>검색 조건에 맞는 자료가 없습니다.</p><button type="button" id="reset-search">검색 조건 초기화</button></div>' : emptyDisclosures;
-      $('#disclosure-status').textContent = disclosureSamplesOnly ? `${rows.length}개 항목 · 자료 준비 중` : `등록된 자료 ${rows.length}건`;
-      $$('[data-disclosure]').forEach(button => button.addEventListener('click', () => {
-        const item = disclosureItems.find(entry => entry.category === button.dataset.disclosure);
-        openDialog(`${item.label} / 자료 준비 중`, item.title, `<p>${esc(item.description)}</p><p class="dialog-note" style="margin-top:24px">자료 준비 중입니다. 현재 등록된 공시 문서나 다운로드 파일은 없습니다.</p>`, button);
-      }));
+      $('#disclosure-status').textContent = `총 ${rows.length}개 항목${pages > 1 ? ` · ${page}/${pages}쪽` : ''}`;
+      pager.hidden = pages < 2;
+      pager.innerHTML = pages < 2 ? '' : pageButton(page - 1, '이전 페이지', '‹', page === 1 ? ' disabled' : '')
+        + Array.from({ length: pages }, (_, i) => i + 1).map(n => pageButton(n, `${n}페이지`, n, n === page ? ' class="on" aria-current="page"' : '')).join('')
+        + pageButton(page + 1, '다음 페이지', '›', page === pages ? ' disabled' : '');
+      $$('[data-disclosure]', list).forEach(button => button.addEventListener('click', () => disclosureDetail(disclosureItems.find(entry => entry.id === button.dataset.disclosure), button)));
       $('#reset-search')?.addEventListener('click', () => {
         $('#search-input').value = '';
         disclosureFilter = 'all';
@@ -217,18 +245,38 @@
         $('#search-input').focus();
       });
     };
+    pager.addEventListener('click', event => {
+      const button = event.target.closest('button[data-page]');
+      if (!button || button.disabled) return;
+      page = Number(button.dataset.page);
+      renderDisclosures(true);
+      const top = $('#disclosure-filters').getBoundingClientRect().top;
+      if (top < 0) window.scrollTo({ top: scrollY + top - 140, behavior: 'auto' });
+      $('[aria-current="page"]', pager)?.focus();
+    });
     $$('#disclosure-filters button').forEach(button => button.addEventListener('click', () => {
       disclosureFilter = button.dataset.filter;
       activateFilter($('#disclosure-filters'), button);
       renderDisclosures();
     }));
     $('#disclosure-search').addEventListener('submit', event => { event.preventDefault(); renderDisclosures(); });
-    $('#search-input').addEventListener('input', renderDisclosures);
+    $('#search-input').addEventListener('input', () => renderDisclosures());
     renderDisclosures();
     applyDisclosureHash = () => {
       // 주소의 해시를 선택자 문자열에 넣지 않고 값으로 비교한다(특수문자가 와도 선택자 오류 없음)
       const key = location.hash.slice(1);
-      const button = $$('#disclosure-filters [data-filter]').find(item => item.dataset.filter === key);
+      const item = disclosureItems.find(entry => entry.id === key);
+      if (item) {
+        // 메인 공시 요약에서 온 주소(/disclosure/#<id>): 그 항목이 있는 쪽을 보여 주고 상세 팝업을 연다
+        disclosureFilter = 'all';
+        $('#search-input').value = '';
+        activateFilter($('#disclosure-filters'), $('#disclosure-filters [data-filter="all"]'));
+        page = Math.floor(disclosureItems.indexOf(item) / PAGE_SIZE) + 1;
+        renderDisclosures(true);
+        if (!dialog.open) disclosureDetail(item, $$('[data-disclosure]', list).find(button => button.dataset.disclosure === item.id));
+        return true;
+      }
+      const button = $$('#disclosure-filters [data-filter]').find(entry => entry.dataset.filter === key);
       if (!button || key === 'all') return false;
       disclosureFilter = key;
       $('#search-input').value = '';
